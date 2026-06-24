@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 import * as THREE from 'three';
 
 const TYPING_STRINGS = [
-  'Join the Ultimate Battle',
-  'Compete in Free Fire Tournaments',
-  'Win Real Cash Prizes',
-  'Rise to the Top',
+  'চূড়ান্ত যুদ্ধে যোগ দিন',
+  'ফ্রি ফায়ার টুর্নামেন্টে অংশ নিন',
+  'রিয়েল ক্যাশ পুরস্কার জিতুন',
+  'শীর্ষে উঠুন',
 ];
 
 export default function HeroSection() {
@@ -17,7 +17,7 @@ export default function HeroSection() {
   const [charIndex, setCharIndex] = useState(0);
   const [deleting, setDeleting] = useState(false);
 
-  // Three.js particle background
+  // Three.js পার্টিকেল ব্যাকগ্রাউন্ড
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -34,7 +34,7 @@ export default function HeroSection() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Particles
+    // পার্টিকেল
     const count = 1500;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
@@ -44,8 +44,8 @@ export default function HeroSection() {
       positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
       const r = Math.random();
-      if (r < 0.5) { colors[i * 3] = 0.13; colors[i * 3 + 1] = 0.83; colors[i * 3 + 2] = 0.93; }
-      else if (r < 0.8) { colors[i * 3] = 0.91; colors[i * 3 + 1] = 0.47; colors[i * 3 + 2] = 0.98; }
+      if (r < 0.4) { colors[i * 3] = 0.13; colors[i * 3 + 1] = 0.83; colors[i * 3 + 2] = 0.93; }
+      else if (r < 0.7) { colors[i * 3] = 0.91; colors[i * 3 + 1] = 0.47; colors[i * 3 + 2] = 0.98; }
       else { colors[i * 3] = 0.98; colors[i * 3 + 1] = 0.75; colors[i * 3 + 2] = 0.14; }
     }
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -65,7 +65,7 @@ export default function HeroSection() {
     return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', resize); renderer.dispose(); };
   }, []);
 
-  // Typing animation
+  // টাইপিং অ্যানিমেশন
   useEffect(() => {
     const str = TYPING_STRINGS[strIndex];
     const speed = deleting ? 40 : 80;
@@ -95,15 +95,20 @@ export default function HeroSection() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="inline-block mb-4 px-4 py-1.5 bg-cyan-500/20 border border-cyan-500/40 rounded-full text-cyan-400 text-sm font-semibold tracking-wider"
+            className="inline-block mb-6 px-4 py-1.5 bg-cyan-500/20 border border-cyan-500/40 rounded-full text-cyan-400 text-sm font-semibold tracking-wider"
           >
-            🎮 FREE FIRE TOURNAMENT PLATFORM
+            🎮 ফ্রি ফায়ার টুর্নামেন্ট প্ল্যাটফর্ম
           </motion.div>
 
-          <h1 className="font-orbitron font-black text-5xl md:text-7xl text-white mb-4 leading-tight">
-            <span className="neon-text">FF</span>{' '}
-            <span className="text-white">Arena</span>
-          </h1>
+          {/* লোগো */}
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, type: 'spring', stiffness: 150 }}
+            className="flex justify-center mb-6"
+          >
+            <img src="/logo-nobg.png" alt="BooyahZone" className="h-28 md:h-36 w-auto drop-shadow-[0_0_30px_rgba(34,211,238,0.5)]" />
+          </motion.div>
 
           <div className="h-16 md:h-20 flex items-center justify-center mb-6">
             <h2 className="font-rajdhani text-2xl md:text-4xl text-cyan-300 font-semibold">
@@ -112,7 +117,7 @@ export default function HeroSection() {
           </div>
 
           <p className="text-gray-300 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            Bangladesh's premier Free Fire tournament platform. Register, compete, and win <span className="text-yellow-400 font-semibold">real cash prizes</span>!
+            বাংলাদেশের সেরা ফ্রি ফায়ার টুর্নামেন্ট প্ল্যাটফর্ম। রেজিস্টার করুন, প্রতিযোগিতা করুন এবং <span className="text-yellow-400 font-semibold">রিয়েল ক্যাশ পুরস্কার</span> জিতুন!
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -122,7 +127,7 @@ export default function HeroSection() {
                 whileTap={{ scale: 0.95 }}
                 className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-orbitron font-bold px-10 py-4 rounded-xl text-lg tracking-wider shadow-xl"
               >
-                ⚔️ REGISTER NOW
+                ⚔️ এখনই রেজিস্টার করুন
               </motion.button>
             </Link>
             <Link to="/tournaments">
@@ -131,13 +136,13 @@ export default function HeroSection() {
                 whileTap={{ scale: 0.95 }}
                 className="w-full sm:w-auto border-2 border-fuchsia-500 text-fuchsia-400 font-orbitron font-bold px-10 py-4 rounded-xl text-lg tracking-wider hover:bg-fuchsia-500/20 transition-colors"
               >
-                🏆 VIEW TOURNAMENTS
+                🏆 টুর্নামেন্ট দেখুন
               </motion.button>
             </Link>
           </div>
         </motion.div>
 
-        {/* Scroll indicator */}
+        {/* স্ক্রল ইন্ডিকেটর */}
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ repeat: Infinity, duration: 1.5 }}

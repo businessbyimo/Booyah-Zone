@@ -25,7 +25,7 @@ export default function StaticPage() {
         ) : (
           <div className="text-center py-20">
             <p className="text-5xl mb-4">📄</p>
-            <h2 className="text-2xl font-orbitron text-gray-400">Page not found</h2>
+            <h2 className="text-2xl font-orbitron text-gray-400">পেজ পাওয়া যায়নি</h2>
           </div>
         )}
       </div>

@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.jsx';
 import toast from 'react-hot-toast';
 import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
-import { GiCrossedSwords } from 'react-icons/gi';
 
 export default function AdminLogin() {
   const { login } = useAuth();
@@ -19,13 +18,13 @@ export default function AdminLogin() {
     try {
       const data = await login(form.identifier, form.password);
       if (!['admin', 'moderator'].includes(data.user.role)) {
-        toast.error('Admin access required');
+        toast.error('অ্যাডমিন অ্যাক্সেস প্রয়োজন');
         return;
       }
-      toast.success(`Welcome, ${data.user.username}!`);
+      toast.success(`স্বাগতম, ${data.user.username}! 🎮`);
       navigate('/admin');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Login failed');
+      toast.error(err.response?.data?.error || 'লগইন ব্যর্থ হয়েছে');
     } finally { setLoading(false); }
   };
 
@@ -33,23 +32,21 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-dark-900 grid-pattern flex items-center justify-center px-4">
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/50 flex items-center justify-center mx-auto mb-4">
-            <GiCrossedSwords className="text-cyan-400 text-3xl" />
-          </div>
-          <h1 className="font-orbitron font-bold text-2xl neon-text">Admin Panel</h1>
-          <p className="text-gray-400 text-sm mt-1">FF Arena Management System</p>
+          <img src="/logo-nobg.png" alt="BooyahZone" className="h-20 w-auto mx-auto mb-4" />
+          <h1 className="font-orbitron font-bold text-2xl neon-text">অ্যাডমিন প্যানেল</h1>
+          <p className="text-gray-400 text-sm mt-1">BooyahZone ম্যানেজমেন্ট সিস্টেম</p>
         </div>
         <div className="card neon-border">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Username or Email</label>
+              <label className="block text-sm text-gray-400 mb-1.5">ইউজারনেম বা ইমেইল</label>
               <div className="relative">
                 <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input type="text" value={form.identifier} onChange={e => setForm(f => ({...f, identifier: e.target.value}))} className="input-field pl-10" placeholder="admin" required />
               </div>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Password</label>
+              <label className="block text-sm text-gray-400 mb-1.5">পাসওয়ার্ড</label>
               <div className="relative">
                 <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input type={showPw ? 'text' : 'password'} value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} className="input-field pl-10 pr-10" placeholder="••••••••" required />
@@ -59,10 +56,10 @@ export default function AdminLogin() {
               </div>
             </div>
             <button type="submit" disabled={loading} className="w-full btn-primary py-3 font-orbitron disabled:opacity-50">
-              {loading ? 'Logging in...' : '🔐 Admin Login'}
+              {loading ? 'লগইন হচ্ছে...' : '🔐 অ্যাডমিন লগইন'}
             </button>
           </form>
-          <p className="text-center text-gray-600 text-xs mt-4">Default: admin / Admin@123</p>
+          <p className="text-center text-gray-600 text-xs mt-4">ডিফল্ট: admin / Admin@123</p>
         </div>
       </motion.div>
     </div>

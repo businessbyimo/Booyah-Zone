@@ -1,15 +1,15 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiUsers, FiDollarSign, FiCalendar, FiMap } from 'react-icons/fi';
+import { FiUsers, FiCalendar, FiMap } from 'react-icons/fi';
 import { GiTrophy } from 'react-icons/gi';
 import CountdownTimer from './CountdownTimer.jsx';
 import { format } from 'date-fns';
 
 const statusConfig = {
-  upcoming: { label: 'Upcoming', cls: 'badge-upcoming' },
-  ongoing: { label: 'Live 🔴', cls: 'badge-ongoing' },
-  completed: { label: 'Completed', cls: 'badge-completed' },
-  cancelled: { label: 'Cancelled', cls: 'badge-cancelled' },
+  upcoming: { label: 'আসন্ন', cls: 'badge-upcoming' },
+  ongoing: { label: 'লাইভ 🔴', cls: 'badge-ongoing' },
+  completed: { label: 'সম্পন্ন', cls: 'badge-completed' },
+  cancelled: { label: 'বাতিল', cls: 'badge-cancelled' },
 };
 
 export default function TournamentCard({ tournament, index = 0 }) {
@@ -39,22 +39,22 @@ export default function TournamentCard({ tournament, index = 0 }) {
 
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="bg-dark-700/50 rounded-lg p-3">
-          <p className="text-xs text-gray-500 mb-1">Prize Pool</p>
+          <p className="text-xs text-gray-500 mb-1">পুরস্কার পুল</p>
           <p className="font-bold text-yellow-400 text-lg font-orbitron">৳{Number(tournament.prize_pool).toLocaleString()}</p>
         </div>
         <div className="bg-dark-700/50 rounded-lg p-3">
-          <p className="text-xs text-gray-500 mb-1">Entry Fee</p>
+          <p className="text-xs text-gray-500 mb-1">এন্ট্রি ফি</p>
           <p className="font-bold text-cyan-400 text-lg font-orbitron">
-            {parseFloat(tournament.entry_fee) === 0 ? 'FREE' : `৳${tournament.entry_fee}`}
+            {parseFloat(tournament.entry_fee) === 0 ? 'বিনামূল্যে' : `৳${tournament.entry_fee}`}
           </p>
         </div>
       </div>
 
-      {/* Participants bar */}
+      {/* অংশগ্রহণকারী বার */}
       <div className="mb-4">
         <div className="flex justify-between text-xs text-gray-400 mb-1">
           <span className="flex items-center"><FiUsers className="mr-1" />{tournament.current_participants}/{tournament.max_participants}</span>
-          <span>{Math.round(fillPct)}% full</span>
+          <span>{Math.round(fillPct)}% পূর্ণ</span>
         </div>
         <div className="h-1.5 bg-dark-600 rounded-full overflow-hidden">
           <motion.div
@@ -75,10 +75,10 @@ export default function TournamentCard({ tournament, index = 0 }) {
       <div className="flex items-center justify-between">
         <p className="text-xs text-gray-500 flex items-center">
           <FiCalendar className="mr-1" />
-          {tournament.start_time ? format(new Date(tournament.start_time), 'MMM dd, yyyy') : 'TBD'}
+          {tournament.start_time ? format(new Date(tournament.start_time), 'dd MMM, yyyy') : 'TBD'}
         </p>
         <Link to={`/tournament/${tournament.id}`} className="btn-primary text-sm px-4 py-2">
-          View Details
+          বিস্তারিত দেখুন
         </Link>
       </div>
     </motion.div>

@@ -38,27 +38,27 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-orbitron font-bold text-2xl text-white mb-1">Dashboard</h2>
-        <p className="text-gray-500 text-sm">Real-time overview of FF Arena</p>
+        <h2 className="font-orbitron font-bold text-2xl text-white mb-1">ড্যাশবোর্ড</h2>
+        <p className="text-gray-500 text-sm">BooyahZone-এর রিয়েলটাইম ওভারভিউ</p>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI কার্ড */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <KPICard icon={<FiUsers className="text-cyan-400" />} label="Total Users" value={stats?.totalUsers?.toLocaleString() || 0} color="bg-cyan-500/10" delay={0} />
-        <KPICard icon={<GiCrossedSwords className="text-fuchsia-400" />} label="Tournaments" value={stats?.totalTournaments || 0} color="bg-fuchsia-500/10" delay={0.1} />
-        <KPICard icon={<FiDollarSign className="text-green-400" />} label="Today's Revenue" value={`৳${stats?.todayRevenue?.toFixed(0) || 0}`} color="bg-green-500/10" delay={0.2} />
-        <KPICard icon={<FiClock className="text-yellow-400" />} label="Pending Deposits" value={stats?.pendingDeposits || 0} color="bg-yellow-500/10" delay={0.3} />
-        <KPICard icon={<FiTrendingUp className="text-red-400" />} label="Pending Withdrawals" value={stats?.pendingWithdrawals || 0} color="bg-red-500/10" delay={0.4} />
+        <KPICard icon={<FiUsers className="text-cyan-400" />} label="মোট ইউজার" value={stats?.totalUsers?.toLocaleString() || 0} color="bg-cyan-500/10" delay={0} />
+        <KPICard icon={<GiCrossedSwords className="text-fuchsia-400" />} label="টুর্নামেন্ট" value={stats?.totalTournaments || 0} color="bg-fuchsia-500/10" delay={0.1} />
+        <KPICard icon={<FiDollarSign className="text-green-400" />} label="আজকের আয়" value={`৳${stats?.todayRevenue?.toFixed(0) || 0}`} color="bg-green-500/10" delay={0.2} />
+        <KPICard icon={<FiClock className="text-yellow-400" />} label="পেন্ডিং ডিপোজিট" value={stats?.pendingDeposits || 0} color="bg-yellow-500/10" delay={0.3} />
+        <KPICard icon={<FiTrendingUp className="text-red-400" />} label="পেন্ডিং উইথড্র" value={stats?.pendingWithdrawals || 0} color="bg-red-500/10" delay={0.4} />
       </div>
 
-      {/* Charts */}
+      {/* চার্ট */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card neon-border">
-          <h3 className="font-orbitron font-bold text-white mb-4 text-sm">📈 Weekly Revenue (৳)</h3>
+          <h3 className="font-orbitron font-bold text-white mb-4 text-sm">📈 সাপ্তাহিক আয় (৳)</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={weeklyRevenue || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1a1a3e" />
-              <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 10 }} tickFormatter={d => d ? format(new Date(d), 'MMM dd') : ''} />
+              <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 10 }} tickFormatter={d => d ? format(new Date(d), 'dd MMM') : ''} />
               <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} />
               <Tooltip contentStyle={customTooltipStyle} />
               <Bar dataKey="revenue" fill="#22d3ee" radius={[4, 4, 0, 0]} />
@@ -66,11 +66,11 @@ export default function AdminDashboard() {
           </ResponsiveContainer>
         </div>
         <div className="card neon-border">
-          <h3 className="font-orbitron font-bold text-white mb-4 text-sm">👥 New Users (Daily)</h3>
+          <h3 className="font-orbitron font-bold text-white mb-4 text-sm">👥 নতুন ইউজার (প্রতিদিন)</h3>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={weeklyUsers || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1a1a3e" />
-              <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 10 }} tickFormatter={d => d ? format(new Date(d), 'MMM dd') : ''} />
+              <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 10 }} tickFormatter={d => d ? format(new Date(d), 'dd MMM') : ''} />
               <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} />
               <Tooltip contentStyle={customTooltipStyle} />
               <Line type="monotone" dataKey="count" stroke="#e879f9" strokeWidth={2} dot={{ fill: '#e879f9', r: 3 }} />
@@ -79,11 +79,11 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* সাম্প্রতিক কার্যক্রম */}
       <div className="card neon-border">
-        <h3 className="font-orbitron font-bold text-white mb-4 text-sm">⚡ Recent Activity</h3>
+        <h3 className="font-orbitron font-bold text-white mb-4 text-sm">⚡ সাম্প্রতিক কার্যক্রম</h3>
         {!recentActivity?.length ? (
-          <p className="text-gray-500 text-sm text-center py-4">No recent activity</p>
+          <p className="text-gray-500 text-sm text-center py-4">কোনো সাম্প্রতিক কার্যক্রম নেই</p>
         ) : (
           <div className="space-y-2">
             {recentActivity.map((a, i) => (
