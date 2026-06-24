@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "cd .. && npm install --omit=dev",
     "build": "vite build",
-    "preview": "vite preview",
-    "postinstall": "cd ../backend && npm install"
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.2.0",
