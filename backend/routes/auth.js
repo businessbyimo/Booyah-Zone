@@ -58,7 +58,7 @@ router.post('/login', async (req, res) => {
     );
     if (!result.rows.length) return res.status(401).json({ error: 'Invalid credentials' });
     const user = result.rows[0];
-    if (user.status === 'banned') return res.status(403).json({ error: 'Account banned' });
+    if (user.is_banned) return res.status(403).json({ error: 'Account banned' });
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
@@ -151,7 +151,7 @@ router.post('/reset-password', async (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', authenticate, async (req, res) => {
-  const result = await query('SELECT id, username, email, free_fire_id, balance, total_points, role, status, avatar, must_change_password, created_at FROM users WHERE id = $1', [req.user.id]);
+  const result = await query('SELECT id, username, email, free_fire_id, balance, total_points, role, is_banned, avatar, must_change_password, created_at FROM users WHERE id = $1', [req.user.id]);
   res.json(result.rows[0]);
 });
 
@@ -160,7 +160,7 @@ router.put('/profile', authenticate, async (req, res) => {
   const { username, free_fire_id } = req.body;
   try {
     await query('UPDATE users SET username = COALESCE($1, username), free_fire_id = COALESCE($2, free_fire_id) WHERE id = $3', [username, free_fire_id, req.user.id]);
-    const updated = await query('SELECT id, username, email, free_fire_id, balance, total_points, role, status, avatar FROM users WHERE id = $1', [req.user.id]);
+    const updated = await query('SELECT id, username, email, free_fire_id, balance, total_points, role, is_banned, avatar FROM users WHERE id = $1', [req.user.id]);
     res.json(updated.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Update failed' });

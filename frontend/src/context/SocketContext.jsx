@@ -4,8 +4,7 @@ import { useAuth } from './AuthContext.jsx';
 
 const SocketContext = createContext(null);
 
-const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 
-  (import.meta.env.DEV ? 'http://localhost:3001' : '');
+const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
 
 export function SocketProvider({ children }) {
   const { user } = useAuth();

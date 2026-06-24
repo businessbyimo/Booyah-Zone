@@ -45,36 +45,37 @@ router.get('/users', async (req, res) => {
   let i = 1;
   if (search) { where.push(`(username ILIKE $${i} OR email ILIKE $${i})`); params.push(`%${search}%`); i++; }
   if (role) { where.push(`role = $${i++}`); params.push(role); }
-  if (status) { where.push(`status = $${i++}`); params.push(status); }
+  if (status === 'banned') { where.push(`is_banned = TRUE`); }
+  else if (status === 'active') { where.push(`is_banned = FALSE`); }
   const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
   const total = await query(`SELECT COUNT(*) FROM users ${whereClause}`, params);
   const offset = (page - 1) * limit;
   params.push(limit, offset);
-  const result = await query(`SELECT id, username, email, role, status, balance, total_points, avatar, created_at, free_fire_id FROM users ${whereClause} ORDER BY created_at DESC LIMIT $${i++} OFFSET $${i++}`, params);
+  const result = await query(`SELECT id, username, email, role, is_banned, balance, total_points, avatar, created_at, free_fire_id FROM users ${whereClause} ORDER BY created_at DESC LIMIT $${i++} OFFSET $${i++}`, params);
   res.json({ users: result.rows, total: parseInt(total.rows[0].count) });
 });
 
 router.get('/users/:id', async (req, res) => {
-  const user = await query('SELECT id, username, email, role, status, balance, total_points, avatar, created_at, free_fire_id FROM users WHERE id = $1', [req.params.id]);
+  const user = await query('SELECT id, username, email, role, is_banned, balance, total_points, avatar, created_at, free_fire_id FROM users WHERE id = $1', [req.params.id]);
   const transactions = await query('SELECT * FROM transactions WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20', [req.params.id]);
-  const participations = await query(`SELECT p.*, t.name as tournament_name FROM participants p JOIN tournaments t ON p.tournament_id = t.id WHERE p.user_id = $1 ORDER BY p.registered_at DESC`, [req.params.id]);
+  const participations = await query(`SELECT p.*, t.name as tournament_name FROM tournament_participants p JOIN tournaments t ON p.tournament_id = t.id WHERE p.user_id = $1 ORDER BY p.registered_at DESC`, [req.params.id]);
   res.json({ user: user.rows[0], transactions: transactions.rows, participations: participations.rows });
 });
 
 router.put('/users/:id', requireSuperAdmin, async (req, res) => {
-  const { username, email, role, status, balance, free_fire_id } = req.body;
-  await query('UPDATE users SET username=COALESCE($1,username), email=COALESCE($2,email), role=COALESCE($3,role), status=COALESCE($4,status), free_fire_id=COALESCE($5,free_fire_id) WHERE id=$6',
-    [username, email, role, status, free_fire_id, req.params.id]);
+  const { username, email, role, free_fire_id } = req.body;
+  await query('UPDATE users SET username=COALESCE($1,username), email=COALESCE($2,email), role=COALESCE($3,role), free_fire_id=COALESCE($4,free_fire_id) WHERE id=$5',
+    [username, email, role, free_fire_id, req.params.id]);
   res.json({ message: 'User updated' });
 });
 
 router.put('/users/:id/ban', async (req, res) => {
-  await query("UPDATE users SET status = 'banned' WHERE id = $1", [req.params.id]);
+  await query("UPDATE users SET is_banned = TRUE WHERE id = $1", [req.params.id]);
   res.json({ message: 'User banned' });
 });
 
 router.put('/users/:id/unban', async (req, res) => {
-  await query("UPDATE users SET status = 'active' WHERE id = $1", [req.params.id]);
+  await query("UPDATE users SET is_banned = FALSE WHERE id = $1", [req.params.id]);
   res.json({ message: 'User unbanned' });
 });
 
@@ -124,7 +125,7 @@ router.delete('/tournaments/:id', requireSuperAdmin, async (req, res) => {
 
 router.post('/tournaments/:id/generate-bracket', async (req, res) => {
   const tid = req.params.id;
-  const participants = await query("SELECT user_id FROM participants WHERE tournament_id = $1 AND status = 'approved'", [tid]);
+  const participants = await query("SELECT user_id FROM tournament_participants WHERE tournament_id = $1 AND status = 'approved'", [tid]);
   const count = participants.rows.length;
   if (count < 2) return res.status(400).json({ error: 'Need at least 2 approved participants' });
 
@@ -149,34 +150,34 @@ router.get('/participants', async (req, res) => {
   if (tournament_id) { where.push(`p.tournament_id = $${i++}`); params.push(tournament_id); }
   if (status) { where.push(`p.status = $${i++}`); params.push(status); }
   const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
-  const result = await query(`SELECT p.*, u.username, u.email, u.avatar, u.free_fire_id, t.name as tournament_name FROM participants p JOIN users u ON p.user_id = u.id JOIN tournaments t ON p.tournament_id = t.id ${whereClause} ORDER BY p.registered_at DESC`, params);
+  const result = await query(`SELECT p.*, u.username, u.email, u.avatar, u.free_fire_id, t.name as tournament_name FROM tournament_participants p JOIN users u ON p.user_id = u.id JOIN tournaments t ON p.tournament_id = t.id ${whereClause} ORDER BY p.registered_at DESC`, params);
   res.json(result.rows);
 });
 
 router.put('/participants/:id/approve', async (req, res) => {
-  await query("UPDATE participants SET status = 'approved' WHERE id = $1", [req.params.id]);
-  const p = await query('SELECT * FROM participants WHERE id = $1', [req.params.id]);
+  await query("UPDATE tournament_participants SET status = 'approved' WHERE id = $1", [req.params.id]);
+  const p = await query('SELECT * FROM tournament_participants WHERE id = $1', [req.params.id]);
   const t = await query('SELECT name FROM tournaments WHERE id = $1', [p.rows[0].tournament_id]);
   await query("INSERT INTO notifications (user_id, title, message) VALUES ($1,$2,$3)", [p.rows[0].user_id, 'Registration Approved', `Your registration for ${t.rows[0].name} has been approved!`]);
   res.json({ message: 'Participant approved' });
 });
 
 router.put('/participants/:id/reject', async (req, res) => {
-  const p = await query('SELECT * FROM participants WHERE id = $1', [req.params.id]);
+  const p = await query('SELECT * FROM tournament_participants WHERE id = $1', [req.params.id]);
   const participant = p.rows[0];
   const t = await query('SELECT * FROM tournaments WHERE id = $1', [participant.tournament_id]);
   // Refund entry fee if any
   if (parseFloat(t.rows[0].entry_fee) > 0) {
     await query('UPDATE users SET balance = balance + $1 WHERE id = $2', [t.rows[0].entry_fee, participant.user_id]);
   }
-  await query("UPDATE participants SET status = 'rejected' WHERE id = $1", [req.params.id]);
+  await query("UPDATE tournament_participants SET status = 'rejected' WHERE id = $1", [req.params.id]);
   await query('UPDATE tournaments SET current_participants = current_participants - 1 WHERE id = $1', [participant.tournament_id]);
   await query("INSERT INTO notifications (user_id, title, message) VALUES ($1,$2,$3)", [participant.user_id, 'Registration Rejected', `Your registration for ${t.rows[0].name} was rejected.`]);
   res.json({ message: 'Participant rejected' });
 });
 
 router.put('/participants/:id/checkin', async (req, res) => {
-  await query("UPDATE participants SET status = 'checked_in' WHERE id = $1", [req.params.id]);
+  await query("UPDATE tournament_participants SET status = 'checked_in' WHERE id = $1", [req.params.id]);
   res.json({ message: 'Player checked in' });
 });
 

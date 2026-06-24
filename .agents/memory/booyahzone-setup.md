@@ -15,8 +15,14 @@ description: Key architecture decisions and gotchas for the BooyahZone Free Fire
 **Known gotchas:**
 - Three.js WebGL doesn't work in Replit sandbox preview (no GPU) — handle gracefully with try/catch.
 - react-icons GiSword doesn't exist — use GiCrossedSwords instead.
+- react-icons RiUserCheckLine does not exist — use RiCheckboxCircleLine instead.
 - Frontend node_modules has Tailwind v3, root has v4 — Vite uses frontend's v3 (correct).
 - DB schema must be created manually via inline Node script (no schema.sql file, seed.js only inserts data).
+- DB table is `tournament_participants` not `participants` — all routes must use full name.
+- `users` table has `is_banned` (boolean) NOT a `status` column — use `is_banned=TRUE/FALSE` for ban/unban.
+- Socket.io: Vite proxy `/socket.io` with `ws: true` → port 3001; SocketContext uses `''` as BACKEND_URL (relative).
+- `payments.js` deposit: `sender_number` is optional, don't require it.
+- Missing endpoints added: `GET /tournaments/:id/my-participation` and `GET /payments/pending-deposits`.
 
 **Admin credentials:** admin / Admin@123 (created by seed.js).
 

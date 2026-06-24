@@ -7,8 +7,8 @@ const router = express.Router();
 // POST /api/payments/deposit - user submits deposit request
 router.post('/deposit', authenticate, async (req, res) => {
   const { amount, method, sender_number, transaction_id } = req.body;
-  if (!amount || !method || !sender_number || !transaction_id) {
-    return res.status(400).json({ error: 'All fields are required' });
+  if (!amount || !method || !transaction_id) {
+    return res.status(400).json({ error: 'পরিমাণ, পেমেন্ট মেথড ও ট্রানজেকশন আইডি দিন' });
   }
   const settings = await query("SELECT key, value FROM site_settings WHERE key IN ('min_deposit')");
   const minDeposit = parseFloat(settings.rows.find(r => r.key === 'min_deposit')?.value || '10');
@@ -81,6 +81,15 @@ router.get('/transactions', authenticate, async (req, res) => {
   );
   const total = await query(`SELECT COUNT(*) FROM transactions WHERE user_id = $1`, [req.user.id]);
   res.json({ transactions: result.rows, total: parseInt(total.rows[0].count) });
+});
+
+// GET /api/payments/pending-deposits - user's pending deposits
+router.get('/pending-deposits', authenticate, async (req, res) => {
+  const result = await query(
+    "SELECT * FROM transactions WHERE user_id = $1 AND type = 'deposit' AND status = 'pending' ORDER BY created_at DESC",
+    [req.user.id]
+  );
+  res.json(result.rows);
 });
 
 // GET /api/payments/settings - get payment method info (bKash/Nagad numbers)

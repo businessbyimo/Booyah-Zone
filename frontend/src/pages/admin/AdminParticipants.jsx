@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RiCheckLine, RiCloseLine, RiUserCheckLine } from 'react-icons/ri';
+import { RiCheckLine, RiCloseLine, RiCheckboxCircleLine } from 'react-icons/ri';
 import api from '../../utils/api.js';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -106,7 +106,7 @@ export default function AdminParticipants() {
                       )}
                       {p.status === 'approved' && (
                         <button onClick={() => checkin(p.id)} className="p-1.5 rounded-lg text-cyan-400 hover:bg-cyan-400/10" title="চেক-ইন">
-                          <RiUserCheckLine className="text-base" />
+                          <RiCheckboxCircleLine className="text-base" />
                         </button>
                       )}
                     </div>
