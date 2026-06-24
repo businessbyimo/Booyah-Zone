@@ -1,13 +1,19 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RiHomeLine, RiHomeFill, RiSwordLine, RiSwordFill, RiAddCircleLine, RiAddCircleFill, RiSendPlaneLine, RiSendPlaneFill, RiUserLine, RiUserFill } from 'react-icons/ri';
+import {
+  RiHomeLine, RiHomeFill,
+  RiSwordLine, RiSwordFill,
+  RiTrophyLine, RiTrophyFill,
+  RiAddCircleLine, RiAddCircleFill,
+  RiUserLine, RiUserFill,
+} from 'react-icons/ri';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const NAV_ITEMS = [
   { to: '/home', icon: RiHomeLine, activeIcon: RiHomeFill, label: 'হোম' },
   { to: '/tournaments', icon: RiSwordLine, activeIcon: RiSwordFill, label: 'টুর্নামেন্ট' },
+  { to: '/leaderboard', icon: RiTrophyLine, activeIcon: RiTrophyFill, label: 'র‍্যাংকিং' },
   { to: '/deposit', icon: RiAddCircleLine, activeIcon: RiAddCircleFill, label: 'ডিপোজিট', auth: true },
-  { to: '/withdraw', icon: RiSendPlaneLine, activeIcon: RiSendPlaneFill, label: 'উইথড্র', auth: true },
   { to: '/account', icon: RiUserLine, activeIcon: RiUserFill, label: 'অ্যাকাউন্ট', auth: true },
 ];
 
@@ -23,10 +29,10 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/8"
       style={{
-        background: 'rgba(10, 10, 15, 0.95)',
-        backdropFilter: 'blur(20px)',
+        background: 'rgba(5, 5, 16, 0.96)',
+        backdropFilter: 'blur(24px)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        boxShadow: '0 -4px 32px rgba(0,0,0,0.5)',
+        boxShadow: '0 -1px 0 rgba(255,255,255,0.05), 0 -8px 32px rgba(0,0,0,0.6)',
       }}>
       <div className="flex items-center justify-around max-w-lg mx-auto h-16 px-1">
         {NAV_ITEMS.map(({ to, icon: Icon, activeIcon: ActiveIcon, label, auth }) => {
@@ -39,7 +45,7 @@ export default function BottomNav() {
                 {active && (
                   <motion.div
                     layoutId="nav-indicator"
-                    className="absolute -top-px left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                    className="absolute -top-px left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
                     style={{ background: 'linear-gradient(90deg, #22d3ee, #d946ef)' }}
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
@@ -54,12 +60,12 @@ export default function BottomNav() {
                 {active ? (
                   <ActiveIcon className="text-2xl text-cyan-400" />
                 ) : (
-                  <Icon className="text-2xl text-gray-500 group-hover:text-gray-300 transition-colors" />
+                  <Icon className="text-2xl text-gray-600 group-hover:text-gray-400 transition-colors" />
                 )}
               </motion.div>
 
-              <span className="text-[9px] font-semibold leading-none transition-colors"
-                style={{ color: active ? '#22d3ee' : '#6b7280' }}>
+              <span className="text-[9px] font-medium leading-none transition-colors"
+                style={{ color: active ? '#22d3ee' : '#4b5563' }}>
                 {label}
               </span>
             </Link>

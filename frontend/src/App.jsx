@@ -1,12 +1,10 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext.jsx';
 import TopBar from './components/TopBar.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import Chatbot from './components/Chatbot.jsx';
 import LoadingScreen from './components/LoadingScreen.jsx';
-import SplashScreen from './components/SplashScreen.jsx';
 
 import LandingPage from './pages/LandingPage.jsx';
 import Home from './pages/Home.jsx';
@@ -129,14 +127,9 @@ const AppContent = () => {
 
 export default function App() {
   const { loading } = useAuth();
-  const [splashDone, setSplashDone] = useState(false);
 
-  if (!splashDone) {
-    return (
-      <AnimatePresence>
-        <SplashScreen onDone={() => setSplashDone(true)} />
-      </AnimatePresence>
-    );
+  if (loading) {
+    return <LoadingScreen />;
   }
 
   return <AppContent />;
