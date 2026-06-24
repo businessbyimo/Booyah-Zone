@@ -1,14 +1,23 @@
+databases:
+  - name: booyahzone-db
+    databaseName: booyahzone
+    user: booyahzone
+    plan: free
+
 services:
   - type: web
     name: booyahzone
     env: node
-    buildCommand: cd backend && npm install && cd ../frontend && npm install && npm run build
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
     startCommand: node backend/server.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: booyahzone-db
+          property: connectionString
       - key: JWT_SECRET
         sync: false
       - key: REFRESH_SECRET
