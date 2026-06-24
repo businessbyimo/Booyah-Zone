@@ -32,13 +32,12 @@ args = "Start application"
 name = "Backend API"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node backend/server.js"
-waitForPort = 3001
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [[workflows.workflow]]
 name = "Start application"
@@ -49,7 +48,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd frontend && npm run dev"
+args = "PORT=5000 node backend/server.js"
 waitForPort = 5000
 
 [[ports]]
