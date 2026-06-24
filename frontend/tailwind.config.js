@@ -4,20 +4,26 @@ export default {
   theme: {
     extend: {
       colors: {
-        orange: {
-          50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa',
-          300: '#fdba74', 400: '#fb923c', 500: '#f97316',
-          600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12'
+        bg: {
+          primary: '#0A0A0F',
+          secondary: '#0F0F1A',
+          card: '#13131F',
+          elevated: '#1A1A2E',
         },
-        brand: { DEFAULT: '#FF6B00', light: '#FF8C42', dark: '#CC5500' },
-        purple: {
-          50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff',
-          300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7',
-          600: '#9333ea', 700: '#7c3aed', 800: '#6b21a8', 900: '#581c87'
+        cyan: {
+          50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc',
+          300: '#67e8f9', 400: '#22d3ee', 500: '#06b6d4',
+          600: '#0891b2', 700: '#0e7490', 800: '#155e75', 900: '#164e63',
+        },
+        fuchsia: {
+          50: '#fdf4ff', 100: '#fae8ff', 200: '#f5d0fe',
+          300: '#f0abfc', 400: '#e879f9', 500: '#d946ef',
+          600: '#c026d3', 700: '#a21caf', 800: '#86198f', 900: '#701a75',
         },
         dark: {
-          900: '#0f0f1a', 800: '#1a1a2e', 700: '#16213e', 600: '#0f3460', 500: '#533483',
-        }
+          900: '#0A0A0F', 800: '#0F0F1A', 700: '#13131F',
+          600: '#1A1A2E', 500: '#16213e', 400: '#0f3460',
+        },
       },
       fontFamily: {
         orbitron: ['Orbitron', 'sans-serif'],
@@ -27,19 +33,40 @@ export default {
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 3s ease-in-out infinite',
+        'glow-cyan': 'glowCyan 2s ease-in-out infinite',
+        'glow-fuchsia': 'glowFuchsia 2s ease-in-out infinite',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'count-up': 'countUp 0.5s ease-out',
+        'ticker': 'ticker 20s linear infinite',
+        'live-pulse': 'livePulse 1.2s ease-in-out infinite',
+        'shimmer': 'shimmer 1.5s infinite',
         'spin-slow': 'spin 3s linear infinite',
       },
       keyframes: {
         float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-8px)' } },
+        glowCyan: { '0%, 100%': { boxShadow: '0 0 20px rgba(34,211,238,0.3)' }, '50%': { boxShadow: '0 0 40px rgba(34,211,238,0.6)' } },
+        glowFuchsia: { '0%, 100%': { boxShadow: '0 0 20px rgba(217,70,239,0.3)' }, '50%': { boxShadow: '0 0 40px rgba(217,70,239,0.6)' } },
+        slideUp: { '0%': { transform: 'translateY(100%)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
+        fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+        ticker: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } },
+        livePulse: { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.4 } },
+        shimmer: { '0%': { backgroundPosition: '200% 0' }, '100%': { backgroundPosition: '-200% 0' } },
       },
       boxShadow: {
-        'card': '0 2px 16px rgba(0,0,0,0.06)',
-        'card-hover': '0 8px 32px rgba(0,0,0,0.12)',
-        'orange': '0 8px 32px rgba(255, 107, 0, 0.3)',
+        'cyan': '0 4px 24px rgba(34,211,238,0.25)',
+        'cyan-lg': '0 8px 40px rgba(34,211,238,0.35)',
+        'fuchsia': '0 4px 24px rgba(217,70,239,0.25)',
+        'fuchsia-lg': '0 8px 40px rgba(217,70,239,0.35)',
+        'card': '0 2px 16px rgba(0,0,0,0.4)',
+        'bottom-nav': '0 -4px 32px rgba(0,0,0,0.5)',
       },
       borderRadius: {
         '3xl': '1.5rem', '4xl': '2rem',
-      }
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
     },
   },
   plugins: [],

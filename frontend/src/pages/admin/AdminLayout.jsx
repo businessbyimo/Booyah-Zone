@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.jsx';
 import {
   FiHome, FiUsers, FiAward, FiDollarSign, FiSettings,
-  FiMenu, FiX, FiLogOut, FiFileText, FiCheckSquare
+  FiMenu, FiX, FiLogOut, FiFileText, FiCheckSquare, FiBell, FiList, FiBarChart2
 } from 'react-icons/fi';
 import { GiCrossedSwords } from 'react-icons/gi';
 import { MdSportsScore } from 'react-icons/md';
@@ -16,8 +16,11 @@ const NAV = [
   { to: '/admin/participants', label: 'অংশগ্রহণকারী', icon: <FiCheckSquare /> },
   { to: '/admin/matches', label: 'ম্যাচ', icon: <MdSportsScore /> },
   { to: '/admin/payments', label: 'পেমেন্ট', icon: <FiDollarSign /> },
+  { to: '/admin/notifications', label: 'নোটিফিকেশন', icon: <FiBell /> },
   { to: '/admin/content', label: 'কন্টেন্ট', icon: <FiFileText /> },
+  { to: '/admin/leaderboard', label: 'লিডারবোর্ড', icon: <FiBarChart2 /> },
   { to: '/admin/settings', label: 'সেটিংস', icon: <FiSettings /> },
+  { to: '/admin/logs', label: 'সিস্টেম লগ', icon: <FiList /> },
 ];
 
 export default function AdminLayout() {

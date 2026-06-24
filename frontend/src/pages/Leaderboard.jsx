@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
-import { gsap } from 'gsap';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import api from '../utils/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import PageTransition from '../components/PageTransition.jsx';
@@ -11,175 +10,143 @@ const FILTERS = [
   { value: 'weekly', label: 'সাপ্তাহিক' },
 ];
 
+const RANK_COLOR = ['#f59e0b', '#9ca3af', '#f97316'];
+const RANK_BG = ['rgba(245,158,11,0.15)', 'rgba(156,163,175,0.15)', 'rgba(249,115,22,0.15)'];
+const RANK_EMOJI = ['🥇', '🥈', '🥉'];
+
 export default function Leaderboard() {
   const { user } = useAuth();
   const [leaders, setLeaders] = useState([]);
-  const [filter, setFilter] = useState('alltime');
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('alltime');
+  const [myRank, setMyRank] = useState(null);
 
   useEffect(() => {
     setLoading(true);
     api.get(`/leaderboard?filter=${filter}`).then(res => {
-      setLeaders(res.data.leaderboard);
-    }).finally(() => setLoading(false));
+      setLeaders(res.data.leaderboard || []);
+      setMyRank(res.data.myRank || null);
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [filter]);
 
-  const rankEmoji = (rank) => {
-    if (rank == 1) return '🥇';
-    if (rank == 2) return '🥈';
-    if (rank == 3) return '🥉';
-    return `#${rank}`;
-  };
+  const Podium = () => {
+    const top3 = leaders.slice(0, 3);
+    if (top3.length < 1) return null;
+    const order = [1, 0, 2];
+    const heights = [80, 100, 65];
 
-  const podiumGradient = (rank) => {
-    if (rank === 1) return 'linear-gradient(135deg,#F59E0B,#FCD34D)';
-    if (rank === 2) return 'linear-gradient(135deg,#9CA3AF,#D1D5DB)';
-    return 'linear-gradient(135deg,#FF6B00,#FF8C42)';
-  };
-
-  const AnimatedPoints = ({ value }) => {
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true });
-    useEffect(() => {
-      if (inView && ref.current) {
-        gsap.fromTo(ref.current, { textContent: 0 }, {
-          textContent: value, duration: 1.5, ease: 'power2.out',
-          snap: { textContent: 1 },
-          onUpdate() { if (ref.current) ref.current.textContent = Math.round(ref.current.textContent).toLocaleString(); }
-        });
-      }
-    }, [inView, value]);
-    return <span ref={ref}>০</span>;
+    return (
+      <div className="flex items-end justify-center gap-2 mb-6 px-4">
+        {order.map((idx, pos) => {
+          const p = top3[idx];
+          if (!p) return <div key={pos} className="flex-1" />;
+          const rank = idx + 1;
+          return (
+            <motion.div key={idx} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: pos * 0.12 }}
+              className="flex-1 flex flex-col items-center">
+              <div className="relative mb-2">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-orbitron font-black text-sm text-black"
+                  style={{ background: RANK_COLOR[idx], boxShadow: `0 6px 20px ${RANK_COLOR[idx]}50` }}>
+                  {p.username?.[0]?.toUpperCase()}
+                </div>
+                <span className="absolute -top-2 -right-1 text-base">{RANK_EMOJI[idx]}</span>
+              </div>
+              <p className="text-white text-xs font-semibold text-center truncate w-full px-1">{p.username}</p>
+              <p className="text-[10px] font-rajdhani font-bold mb-1" style={{ color: RANK_COLOR[idx] }}>
+                {(p.total_points || 0).toLocaleString()}
+              </p>
+              <div className="w-full rounded-t-xl flex items-end justify-center py-2 border border-t-0"
+                style={{ height: heights[pos], background: RANK_BG[idx], borderColor: `${RANK_COLOR[idx]}25` }}>
+                <span className="font-orbitron font-black text-xl" style={{ color: RANK_COLOR[idx] }}>#{rank}</span>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
     <PageTransition>
-      <div className="min-h-screen px-4 pt-4 pb-6 max-w-2xl mx-auto">
-        <div className="text-center mb-5">
-          <h1 className="text-xl font-bold text-gray-900 font-orbitron">🏆 লিডারবোর্ড</h1>
-          <p className="text-gray-500 text-sm mt-0.5">BooyahZone-এর চ্যাম্পিয়নরা, পয়েন্ট অনুযায়ী র্যাঙ্কড</p>
+      <div className="max-w-lg mx-auto px-4 py-2">
+        <div className="text-center mb-4">
+          <h1 className="font-orbitron font-bold text-base text-white">🏆 লিডারবোর্ড</h1>
+          <p className="text-xs text-gray-500 mt-0.5">BooyahZone চ্যাম্পিয়নরা</p>
         </div>
 
-        <div className="flex justify-center gap-2 mb-5">
+        <div className="flex gap-2 justify-center mb-5">
           {FILTERS.map(f => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-              style={filter === f.value
-                ? { background: 'linear-gradient(135deg,#FF6B00,#FF8C42)', color: '#fff', boxShadow: '0 4px 12px rgba(255,107,0,0.3)' }
-                : { background: '#fff', color: '#6B7280', border: '1px solid #E5E7EB' }
-              }
-            >
+            <button key={f.value} onClick={() => setFilter(f.value)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all"
+              style={{
+                background: filter === f.value ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)',
+                borderColor: filter === f.value ? 'rgba(34,211,238,0.4)' : 'rgba(255,255,255,0.08)',
+                color: filter === f.value ? '#22d3ee' : '#9ca3af',
+              }}>
               {f.label}
             </button>
           ))}
         </div>
 
-        {!loading && leaders.length >= 3 && (
-          <div className="flex items-end justify-center gap-3 mb-6">
-            {[{ player: leaders[1], rank: 2 }, { player: leaders[0], rank: 1 }, { player: leaders[2], rank: 3 }].map(({ player: p, rank }, i) => {
-              if (!p) return null;
-              const heights = [80, 104, 64];
-              return (
-                <motion.div
-                  key={p.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="flex flex-col items-center"
-                >
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-orbitron font-bold text-base mb-1.5 overflow-hidden"
-                    style={{ background: podiumGradient(rank) }}
-                  >
-                    {p.avatar ? <img src={p.avatar} alt="" className="w-full h-full object-cover" /> : p.username[0].toUpperCase()}
-                  </div>
-                  <p className="text-gray-800 text-xs font-semibold text-center truncate w-20">{p.username}</p>
-                  <p className="text-[10px] text-gray-500 font-medium mb-1">{Number(p.total_points).toLocaleString()} পয়েন্ট</p>
-                  <div
-                    className="w-20 rounded-t-xl flex items-start justify-center pt-2"
-                    style={{ height: heights[i], background: podiumGradient(rank) + '30', border: '1px solid ' + (rank === 1 ? '#F59E0B' : rank === 2 ? '#9CA3AF' : '#FF6B00') + '40' }}
-                  >
-                    <span className="text-xl">{rankEmoji(rank)}</span>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-10 h-10 border-4 border-orange-100 rounded-full" style={{ borderTopColor: '#FF6B00', animation: 'spin 0.8s linear infinite' }} />
+          <div className="space-y-2">{[...Array(10)].map((_,i)=><div key={i} className="h-14 rounded-2xl shimmer"/>)}</div>
+        ) : leaders.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-4xl mb-3">📊</div>
+            <p className="text-gray-400">এখনো ডেটা নেই</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-xs">
-                  <th className="py-3 pl-4 text-left w-14">র্যাংক</th>
-                  <th className="py-3 text-left">খেলোয়াড়</th>
-                  <th className="py-3 text-center hidden sm:table-cell">ফ্রি ফায়ার আইডি</th>
-                  <th className="py-3 pr-4 text-right">পয়েন্ট</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaders.map((p, i) => (
-                  <motion.tr
-                    key={p.id}
-                    initial={{ opacity: 0, x: -16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="border-b border-gray-50 last:border-0"
-                    style={{ background: p.id === user?.id ? 'rgba(255,107,0,0.04)' : 'transparent' }}
-                  >
-                    <td className="py-3 pl-4">
-                      <div
-                        className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-orbitron font-bold"
-                        style={p.rank <= 3
-                          ? { background: podiumGradient(p.rank) + '20', color: p.rank === 1 ? '#F59E0B' : p.rank === 2 ? '#9CA3AF' : '#FF6B00' }
-                          : { background: '#F9FAFB', color: '#9CA3AF', border: '1px solid #E5E7EB' }
-                        }
-                      >
-                        {p.rank <= 3 ? rankEmoji(p.rank) : p.rank}
-                      </div>
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-2">
-                        {p.avatar ? (
-                          <img src={p.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
-                        ) : (
-                          <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                            style={{ background: p.id === user?.id ? 'linear-gradient(135deg,#FF6B00,#FF8C42)' : 'linear-gradient(135deg,#7C3AED,#A855F7)' }}
-                          >
-                            {p.username[0].toUpperCase()}
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-sm font-semibold" style={{ color: p.id === user?.id ? '#FF6B00' : '#111827' }}>
-                            {p.username} {p.id === user?.id && <span className="text-[10px] text-orange-400">(আপনি)</span>}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 text-center text-gray-400 text-xs hidden sm:table-cell">{p.free_fire_id || '-'}</td>
-                    <td className="py-3 pr-4 text-right font-orbitron font-bold text-orange-500 text-sm">
-                      <AnimatedPoints value={p.total_points} />
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+          <>
+            {leaders.length >= 3 && <Podium />}
 
-        {!loading && leaders.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-5xl mb-3">🏆</p>
-            <p className="text-gray-400">এখনো কোনো তথ্য নেই</p>
-          </div>
+            {myRank && (
+              <div className="mb-3 p-3 rounded-2xl border"
+                style={{ background: 'rgba(34,211,238,0.08)', borderColor: 'rgba(34,211,238,0.2)' }}>
+                <p className="text-xs text-gray-400 mb-0.5">আপনার র্যাংক</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-orbitron font-bold text-cyan-400">#{myRank.rank}</span>
+                  <span className="text-white font-semibold text-sm">{user?.username}</span>
+                  <span className="ml-auto font-rajdhani font-bold text-cyan-400">{(myRank.total_points || 0).toLocaleString()} pts</span>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-2xl overflow-hidden border border-white/8" style={{ background: '#13131F' }}>
+              {leaders.map((p, i) => {
+                const isMe = user && p.id === user.id;
+                return (
+                  <motion.div key={p.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className={`flex items-center gap-3 px-4 py-3 ${i < leaders.length - 1 ? 'border-b border-white/5' : ''} ${isMe ? 'border-l-2 border-cyan-400' : ''}`}
+                    style={{ background: isMe ? 'rgba(34,211,238,0.06)' : 'transparent' }}>
+                    <div className="w-8 text-center font-bold text-sm"
+                      style={{ color: i < 3 ? RANK_COLOR[i] : '#6b7280' }}>
+                      {i < 3 ? RANK_EMOJI[i] : `#${i + 1}`}
+                    </div>
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center font-orbitron font-bold text-xs flex-shrink-0"
+                      style={{ background: i < 3 ? RANK_BG[i] : 'rgba(255,255,255,0.05)', color: i < 3 ? RANK_COLOR[i] : '#9ca3af' }}>
+                      {p.avatar
+                        ? <img src={p.avatar} alt="" className="w-full h-full rounded-xl object-cover" />
+                        : p.username?.[0]?.toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold text-sm truncate ${isMe ? 'text-cyan-400' : 'text-white'}`}>
+                        {p.username} {isMe && <span className="text-[10px] text-cyan-500">(আপনি)</span>}
+                      </p>
+                      <p className="text-[10px] text-gray-500">{p.matches_played || 0} ম্যাচ · {p.wins || 0} জয়</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-rajdhani font-bold text-base" style={{ color: i < 3 ? RANK_COLOR[i] : '#22d3ee' }}>
+                        {(p.total_points || 0).toLocaleString()}
+                      </p>
+                      <p className="text-[9px] text-gray-500">পয়েন্ট</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </PageTransition>

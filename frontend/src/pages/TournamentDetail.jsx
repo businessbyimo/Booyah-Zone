@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUsers, FiCalendar, FiMap, FiCheckCircle, FiX } from 'react-icons/fi';
-import { GiTrophy, GiCrossedSwords } from 'react-icons/gi';
+import { RiUserLine, RiCalendarLine, RiMapPin2Line, RiArrowLeftLine, RiCloseLine, RiKeyLine, RiTrophyLine } from 'react-icons/ri';
 import { format } from 'date-fns';
 import api from '../utils/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -10,25 +9,16 @@ import toast from 'react-hot-toast';
 import CountdownTimer from '../components/CountdownTimer.jsx';
 import PageTransition from '../components/PageTransition.jsx';
 
-const StatusBadge = ({ status }) => {
-  const cfg = {
-    upcoming: 'badge-upcoming',
-    ongoing: 'badge-ongoing',
-    completed: 'badge-completed',
-    cancelled: 'badge-cancelled'
-  };
-  const labels = {
-    upcoming: 'আসন্ন',
-    ongoing: 'চলমান',
-    completed: 'সম্পন্ন',
-    cancelled: 'বাতিল'
-  };
-  return <span className={cfg[status] || 'badge-upcoming'}>{labels[status] || status}</span>;
+const statusConfig = {
+  upcoming: { label: 'আসন্ন', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.3)' },
+  ongoing: { label: '🔴 লাইভ', color: '#10b981', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)' },
+  completed: { label: 'সম্পন্ন', color: '#6b7280', bg: 'rgba(107,114,128,0.15)', border: 'rgba(107,114,128,0.3)' },
+  cancelled: { label: 'বাতিল', color: '#ef4444', bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)' },
 };
 
 export default function TournamentDetail() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,247 +26,268 @@ export default function TournamentDetail() {
   const [teamName, setTeamName] = useState('');
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [results, setResults] = useState([]);
+  const [myParticipation, setMyParticipation] = useState(null);
 
   const fetchData = async () => {
     try {
-      const res = await api.get(`/tournaments/${id}`);
-      setTournament(res.data);
-      const rRes = await api.get(`/tournaments/${id}/results`);
-      setResults(rRes.data);
+      const [tRes, rRes] = await Promise.all([
+        api.get(`/tournaments/${id}`),
+        api.get(`/tournaments/${id}/results`).catch(() => ({ data: [] })),
+      ]);
+      setTournament(tRes.data);
+      setResults(rRes.data || []);
+
+      if (user) {
+        api.get(`/tournaments/${id}/my-participation`).then(r => setMyParticipation(r.data)).catch(() => {});
+      }
     } catch { navigate('/tournaments'); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { fetchData(); }, [id]);
 
-  const isRegistered = tournament?.participants?.some(p => p.user_id === user?.id);
-  const canJoin = tournament?.status === 'upcoming' && !isRegistered && tournament?.current_participants < tournament?.max_participants;
-
   const handleJoin = async () => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) { toast.error('লগইন করুন'); navigate('/login'); return; }
     setJoining(true);
     try {
       await api.post(`/tournaments/${id}/join`, { team_name: teamName });
-      toast.success('সফলভাবে রেজিস্টার হয়েছে! অনুমোদনের জন্য অপেক্ষা করুন।');
+      toast.success('টুর্নামেন্টে যোগ দেওয়ার অনুরোধ পাঠানো হয়েছে! অনুমোদনের পর Room ID পাবেন।');
       setShowJoinModal(false);
+      setTeamName('');
+      refreshUser();
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'যোগ দিতে ব্যর্থ হয়েছে');
+      toast.error(err.response?.data?.error || 'যোগ দেওয়া ব্যর্থ হয়েছে');
     } finally { setJoining(false); }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin" /></div>;
+  if (loading) return (
+    <div className="flex justify-center items-center min-h-[60vh]">
+      <div className="w-10 h-10 border-2 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin" />
+    </div>
+  );
   if (!tournament) return null;
 
-  const myEntry = tournament.participants?.find(p => p.user_id === user?.id);
-  const statusLabels = { pending: 'অপেক্ষমান', approved: 'অনুমোদিত', rejected: 'বাতিল', checked_in: 'চেক-ইন' };
+  const st = statusConfig[tournament.status] || statusConfig.upcoming;
+  const fillPct = Math.min(100, ((tournament.current_participants || 0) / tournament.max_participants) * 100);
+  const isFull = fillPct >= 100;
+  const hasJoined = myParticipation?.status;
+  const canJoin = tournament.status === 'upcoming' && !isFull && user && !hasJoined;
 
   return (
     <PageTransition>
-      <div className="min-h-screen pt-24 pb-16 max-w-6xl mx-auto px-4">
-        {/* হেডার */}
-        <div className="card neon-border mb-6">
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <StatusBadge status={tournament.status} />
-                {tournament.map && <span className="text-xs text-gray-400 flex items-center"><FiMap className="mr-1" />{tournament.map}</span>}
+      <div className="max-w-lg mx-auto px-4 py-2">
+        <button onClick={() => navigate('/tournaments')} className="flex items-center gap-1.5 text-gray-400 text-sm mb-4">
+          <RiArrowLeftLine />টুর্নামেন্ট তালিকায় ফিরুন
+        </button>
+
+        <div className="rounded-3xl overflow-hidden border border-white/8 mb-4" style={{ background: '#13131F' }}>
+          <div className="p-5" style={{ background: 'linear-gradient(135deg, rgba(34,211,238,0.06), rgba(217,70,239,0.04))' }}>
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="flex-1">
+                <h1 className="font-orbitron font-bold text-lg text-white leading-tight mb-2">{tournament.name}</h1>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full border"
+                    style={{ color: st.color, background: st.bg, borderColor: st.border }}>
+                    {st.label}
+                  </span>
+                  {tournament.map && (
+                    <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                      <RiMapPin2Line />{tournament.map}
+                    </span>
+                  )}
+                  {tournament.mode && <span className="text-xs text-gray-400">{tournament.mode}</span>}
+                </div>
               </div>
-              <h1 className="font-orbitron font-bold text-3xl text-white mb-2">{tournament.name}</h1>
-              {tournament.description && <p className="text-gray-400">{tournament.description}</p>}
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                <RiTrophyLine className="text-yellow-400 text-2xl" />
+              </div>
             </div>
-            {tournament.status === 'upcoming' && (
-              <div className="flex-shrink-0">
-                <p className="text-xs text-gray-500 mb-2 text-center">শুরু হতে বাকি</p>
+
+            {tournament.status === 'upcoming' && tournament.start_time && (
+              <div className="flex justify-center mt-3">
                 <CountdownTimer targetDate={tournament.start_time} />
               </div>
             )}
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* বাম কলাম */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* স্ট্যাটস */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="px-5 pb-5">
+            <div className="grid grid-cols-3 gap-2 mt-4 mb-4">
               {[
-                { label: 'পুরস্কার পুল', value: `৳${Number(tournament.prize_pool).toLocaleString()}`, icon: <GiTrophy />, color: 'text-yellow-400' },
-                { label: 'এন্ট্রি ফি', value: parseFloat(tournament.entry_fee) === 0 ? 'বিনামূল্যে' : `৳${tournament.entry_fee}`, icon: <GiCrossedSwords />, color: 'text-cyan-400' },
-                { label: 'স্লট', value: `${tournament.current_participants}/${tournament.max_participants}`, icon: <FiUsers />, color: 'text-fuchsia-400' },
-                { label: 'শুরুর তারিখ', value: tournament.start_time ? format(new Date(tournament.start_time), 'dd MMM') : 'TBD', icon: <FiCalendar />, color: 'text-green-400' },
-              ].map(item => (
-                <div key={item.label} className="card neon-border text-center">
-                  <div className={`text-2xl ${item.color} mb-1`}>{item.icon}</div>
-                  <p className="font-orbitron font-bold text-lg text-white">{item.value}</p>
-                  <p className="text-xs text-gray-500">{item.label}</p>
+                { label: 'পুরস্কার পুল', value: `৳${Number(tournament.prize_pool || 0).toLocaleString()}`, color: '#22d3ee' },
+                { label: 'এন্ট্রি ফি', value: parseFloat(tournament.entry_fee) === 0 ? '🆓 ফ্রি' : `৳${tournament.entry_fee}`, color: '#d946ef' },
+                { label: 'স্লট', value: `${tournament.current_participants || 0}/${tournament.max_participants}`, color: '#f59e0b' },
+              ].map((s, i) => (
+                <div key={i} className="rounded-2xl p-2.5 text-center border border-white/8"
+                  style={{ background: 'rgba(255,255,255,0.04)' }}>
+                  <p className="font-rajdhani font-black text-base" style={{ color: s.color }}>{s.value}</p>
+                  <p className="text-[9px] text-gray-500 mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
 
-            {/* পুরস্কার বণ্টন */}
-            {(parseFloat(tournament.prize_1st) > 0 || parseFloat(tournament.prize_2nd) > 0) && (
-              <div className="card neon-border">
-                <h3 className="font-orbitron font-bold text-white mb-4">🏆 পুরস্কার বণ্টন</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { pos: '১ম স্থান', prize: tournament.prize_1st, emoji: '🥇', color: 'text-yellow-400 border-yellow-400/30' },
-                    { pos: '২য় স্থান', prize: tournament.prize_2nd, emoji: '🥈', color: 'text-gray-300 border-gray-300/30' },
-                    { pos: '৩য় স্থান', prize: tournament.prize_3rd, emoji: '🥉', color: 'text-orange-400 border-orange-400/30' }
-                  ].map(p => (
-                    parseFloat(p.prize) > 0 && (
-                      <div key={p.pos} className={`text-center p-4 rounded-xl border ${p.color} bg-dark-700/30`}>
-                        <div className="text-3xl mb-1">{p.emoji}</div>
-                        <p className="text-xs text-gray-500">{p.pos}</p>
-                        <p className={`font-orbitron font-bold text-xl ${p.color.split(' ')[0]}`}>৳{Number(p.prize).toLocaleString()}</p>
-                      </div>
-                    )
-                  ))}
-                </div>
+            {tournament.prize_1st && (
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {[
+                  { rank: '🥇 ১ম', prize: tournament.prize_1st, color: '#f59e0b' },
+                  { rank: '🥈 ২য়', prize: tournament.prize_2nd, color: '#9ca3af' },
+                  { rank: '🥉 ৩য়', prize: tournament.prize_3rd, color: '#f97316' },
+                ].filter(p => p.prize).map((p, i) => (
+                  <div key={i} className="rounded-xl p-2 text-center border border-white/8"
+                    style={{ background: 'rgba(255,255,255,0.03)' }}>
+                    <p className="text-xs font-bold" style={{ color: p.color }}>{p.rank}</p>
+                    <p className="font-rajdhani font-bold text-white text-sm">৳{Number(p.prize).toLocaleString()}</p>
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* নিয়ম */}
-            {tournament.rules && (
-              <div className="card neon-border">
-                <h3 className="font-orbitron font-bold text-white mb-4">📜 নিয়মাবলী</h3>
-                <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{tournament.rules}</div>
+            <div className="mb-4">
+              <div className="flex justify-between text-xs mb-1.5">
+                <span className="text-gray-400 flex items-center gap-1"><RiUserLine />{tournament.current_participants || 0}/{tournament.max_participants}</span>
+                <span className={isFull ? 'text-red-400 font-bold' : 'text-gray-400'}>{Math.round(fillPct)}% পূর্ণ {isFull && '🔥'}</span>
               </div>
-            )}
-
-            {/* ম্যাচ ফলাফল */}
-            {results.length > 0 && (
-              <div className="card neon-border">
-                <h3 className="font-orbitron font-bold text-white mb-4">📊 ম্যাচ ফলাফল</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-gray-500 border-b border-dark-600">
-                        <th className="pb-2 text-left">র্যাংক</th>
-                        <th className="pb-2 text-left">খেলোয়াড়</th>
-                        <th className="pb-2 text-center">প্লেসমেন্ট</th>
-                        <th className="pb-2 text-center">কিল</th>
-                        <th className="pb-2 text-center">পয়েন্ট</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {results.slice().sort((a, b) => b.total_points - a.total_points).map((r, i) => (
-                        <tr key={r.id} className="border-b border-dark-600/30">
-                          <td className="py-2 text-yellow-400 font-bold">{i + 1}</td>
-                          <td className="py-2 text-white">{r.username}</td>
-                          <td className="py-2 text-center text-gray-400">{r.placement}</td>
-                          <td className="py-2 text-center text-green-400">{r.kill_points}</td>
-                          <td className="py-2 text-center text-cyan-400 font-bold">{r.total_points}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ডান কলাম */}
-          <div className="space-y-6">
-            {/* জয়েন বাটন */}
-            <div className="card neon-border">
-              {myEntry ? (
-                <div className="text-center py-4">
-                  <FiCheckCircle className="text-green-400 text-3xl mx-auto mb-2" />
-                  <p className="text-green-400 font-semibold">আপনি রেজিস্টার্ড!</p>
-                  <span className={`mt-2 inline-block badge-${myEntry.status}`}>{statusLabels[myEntry.status] || myEntry.status}</span>
-                </div>
-              ) : canJoin ? (
-                <button onClick={() => setShowJoinModal(true)} className="w-full btn-primary text-lg py-4 font-orbitron">
-                  ⚔️ টুর্নামেন্টে যোগ দিন
-                </button>
-              ) : (
-                <button disabled className="w-full bg-dark-600 text-gray-500 font-semibold py-4 rounded-lg cursor-not-allowed">
-                  {tournament.status !== 'upcoming' ? `টুর্নামেন্ট ${tournament.status === 'ongoing' ? 'চলমান' : tournament.status === 'completed' ? 'সম্পন্ন' : 'বাতিল'}` : 'সব স্লট পূর্ণ'}
-                </button>
-              )}
-              <div className="mt-3">
-                <div className="flex justify-between text-xs text-gray-400 mb-1">
-                  <span>{tournament.current_participants} জন রেজিস্টার্ড</span>
-                  <span>সর্বোচ্চ {tournament.max_participants}</span>
-                </div>
-                <div className="h-2 bg-dark-600 rounded-full">
-                  <div className="h-full bg-cyan-500 rounded-full transition-all" style={{ width: `${Math.min(100, (tournament.current_participants / tournament.max_participants) * 100)}%` }} />
-                </div>
+              <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <motion.div initial={{ width: 0 }} animate={{ width: `${fillPct}%` }} transition={{ duration: 0.8 }}
+                  className="h-full rounded-full"
+                  style={{ background: isFull ? 'linear-gradient(90deg, #ef4444, #f97316)' : 'linear-gradient(90deg, #22d3ee, #d946ef)' }} />
               </div>
             </div>
 
-            {/* সময়সূচী */}
-            <div className="card neon-border space-y-3 text-sm">
-              <h3 className="font-orbitron font-semibold text-white">📅 সময়সূচী</h3>
-              <div className="flex justify-between"><span className="text-gray-400">শুরু:</span><span className="text-white">{tournament.start_time ? format(new Date(tournament.start_time), 'dd MMM yyyy, HH:mm') : 'TBD'}</span></div>
-              {tournament.end_time && <div className="flex justify-between"><span className="text-gray-400">শেষ:</span><span className="text-white">{format(new Date(tournament.end_time), 'dd MMM yyyy, HH:mm')}</span></div>}
-            </div>
+            {tournament.start_time && (
+              <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
+                <span className="flex items-center gap-1"><RiCalendarLine />শুরু: {format(new Date(tournament.start_time), 'dd MMM yyyy, HH:mm')}</span>
+              </div>
+            )}
 
-            {/* অংশগ্রহণকারী */}
-            {tournament.participants?.length > 0 && (
-              <div className="card neon-border">
-                <h3 className="font-orbitron font-semibold text-white mb-3">👥 অংশগ্রহণকারী ({tournament.participants.filter(p => p.status === 'approved' || p.status === 'checked_in').length})</h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {tournament.participants.filter(p => p.status === 'approved' || p.status === 'checked_in').map(p => (
-                    <div key={p.id} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-xs">{p.username[0].toUpperCase()}</div>
-                        <span className="text-white">{p.username}</span>
-                      </div>
-                      {p.team_name && <span className="text-gray-500 text-xs">{p.team_name}</span>}
+            {/* Room ID for participants */}
+            {(myParticipation?.status === 'approved' || myParticipation?.status === 'checked_in') && tournament.room_id && (
+              <div className="rounded-2xl p-4 mb-4 border border-green-400/20"
+                style={{ background: 'rgba(16,185,129,0.08)' }}>
+                <p className="text-xs font-semibold text-green-400 mb-2 flex items-center gap-1">
+                  <RiKeyLine />Room তথ্য
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-center">
+                    <p className="text-[10px] text-gray-500">Room ID</p>
+                    <p className="font-orbitron font-bold text-white">{tournament.room_id}</p>
+                  </div>
+                  {tournament.room_password && (
+                    <div className="text-center">
+                      <p className="text-[10px] text-gray-500">Password</p>
+                      <p className="font-orbitron font-bold text-white">{tournament.room_password}</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             )}
+
+            {/* Join button / status */}
+            {!user ? (
+              <Link to="/login" className="btn-primary w-full block text-center py-3.5 text-sm font-bold">
+                🔑 লগইন করে যোগ দিন
+              </Link>
+            ) : hasJoined ? (
+              <div className="py-3.5 rounded-2xl text-center border font-semibold text-sm"
+                style={{
+                  background: myParticipation.status === 'approved' ? 'rgba(16,185,129,0.1)' : myParticipation.status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)',
+                  borderColor: myParticipation.status === 'approved' ? 'rgba(16,185,129,0.3)' : myParticipation.status === 'rejected' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)',
+                  color: myParticipation.status === 'approved' ? '#10b981' : myParticipation.status === 'rejected' ? '#ef4444' : '#f59e0b',
+                }}>
+                {myParticipation.status === 'pending' && '⏳ অনুমোদনের অপেক্ষায়...'}
+                {myParticipation.status === 'approved' && '✅ নিবন্ধিত হয়েছেন!'}
+                {myParticipation.status === 'checked_in' && '🎮 চেক-ইন সম্পন্ন!'}
+                {myParticipation.status === 'rejected' && '❌ আবেদন বাতিল হয়েছে'}
+              </div>
+            ) : canJoin ? (
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowJoinModal(true)}
+                className="w-full py-3.5 rounded-2xl font-bold text-black text-sm"
+                style={{ background: 'linear-gradient(135deg, #22d3ee, #06b6d4)', boxShadow: '0 8px 32px rgba(34,211,238,0.3)' }}>
+                ⚔️ টুর্নামেন্টে যোগ দিন
+              </motion.button>
+            ) : isFull ? (
+              <div className="py-3.5 rounded-2xl text-center font-semibold text-sm text-red-400 border border-red-400/30"
+                style={{ background: 'rgba(239,68,68,0.08)' }}>
+                🔥 সব স্লট পূর্ণ হয়ে গেছে!
+              </div>
+            ) : null}
           </div>
         </div>
 
-        {/* জয়েন মডাল পপআপ */}
-        <AnimatePresence>
-          {showJoinModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4"
-              onClick={() => setShowJoinModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0, y: 30 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="card neon-border w-full max-w-md relative"
-                onClick={e => e.stopPropagation()}
-              >
-                <button onClick={() => setShowJoinModal(false)} className="absolute top-4 right-4 p-1 text-gray-500 hover:text-white transition-colors">
-                  <FiX className="text-lg" />
-                </button>
-                <div className="text-center mb-5">
-                  <div className="text-4xl mb-2">⚔️</div>
-                  <h2 className="font-orbitron font-bold text-xl text-white">{tournament.name}-এ যোগ দিন</h2>
+        {tournament.description && (
+          <div className="card rounded-2xl p-4 mb-4">
+            <h2 className="font-semibold text-white text-sm mb-2">📋 বিবরণ</h2>
+            <p className="text-gray-400 text-xs leading-relaxed whitespace-pre-line">{tournament.description}</p>
+          </div>
+        )}
+
+        {tournament.rules && (
+          <div className="card rounded-2xl p-4 mb-4">
+            <h2 className="font-semibold text-white text-sm mb-2">📜 নিয়মাবলী</h2>
+            <p className="text-gray-400 text-xs leading-relaxed whitespace-pre-line">{tournament.rules}</p>
+          </div>
+        )}
+
+        {results.length > 0 && (
+          <div className="card rounded-2xl overflow-hidden mb-4">
+            <h2 className="font-semibold text-white text-sm p-4 border-b border-white/5">🏆 ফলাফল</h2>
+            {results.map((r, i) => (
+              <motion.div key={i} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+                className={`flex items-center justify-between px-4 py-3 ${i < results.length - 1 ? 'border-b border-white/5' : ''}`}>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}</span>
+                  <span className="text-white text-sm font-medium">{r.username || r.team_name}</span>
                 </div>
-                {parseFloat(tournament.entry_fee) > 0 && (
-                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-4 text-sm text-yellow-400">
-                    ⚠️ আপনার ওয়ালেট থেকে <strong>৳{tournament.entry_fee}</strong> এন্ট্রি ফি কাটা হবে।
-                  </div>
-                )}
-                <div className="mb-4">
-                  <label className="block text-sm text-gray-400 mb-1.5">টিমের নাম (ঐচ্ছিক)</label>
-                  <input type="text" value={teamName} onChange={e => setTeamName(e.target.value)} className="input-field" placeholder="আপনার টিমের নাম" />
-                </div>
-                <div className="flex gap-3">
-                  <button onClick={() => setShowJoinModal(false)} className="flex-1 btn-secondary">বাতিল</button>
-                  <button onClick={handleJoin} disabled={joining} className="flex-1 btn-primary disabled:opacity-50">
-                    {joining ? 'যোগ হচ্ছে...' : 'নিশ্চিত করুন'}
-                  </button>
+                <div className="text-right">
+                  <p className="text-xs text-cyan-400 font-bold">{r.total_points || 0} pts</p>
+                  <p className="text-[10px] text-gray-500">{r.kill_points || 0} kills</p>
                 </div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ))}
+          </div>
+        )}
       </div>
+
+      <AnimatePresence>
+        {showJoinModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 modal-overlay flex items-end justify-center px-4 pb-8"
+            onClick={() => setShowJoinModal(false)}>
+            <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+              className="w-full max-w-sm rounded-3xl p-5 border border-cyan-400/20"
+              style={{ background: '#13131F' }}
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-orbitron font-bold text-white">টুর্নামেন্টে যোগ দিন</h3>
+                <button onClick={() => setShowJoinModal(false)} className="text-gray-500 hover:text-white">
+                  <RiCloseLine className="text-xl" />
+                </button>
+              </div>
+              <div className="p-3 rounded-xl mb-4 border border-yellow-400/20"
+                style={{ background: 'rgba(245,158,11,0.08)' }}>
+                <p className="text-xs text-gray-300 mb-1">এন্ট্রি ফি: <span className="text-yellow-400 font-bold">
+                  {parseFloat(tournament.entry_fee) === 0 ? '🆓 বিনামূল্যে' : `৳${tournament.entry_fee}`}
+                </span></p>
+                <p className="text-xs text-gray-400">আপনার ব্যালেন্স: <span className="text-cyan-400 font-bold">৳{Number(user?.balance || 0).toFixed(2)}</span></p>
+              </div>
+              {tournament.mode !== 'Solo' && (
+                <div className="mb-4">
+                  <label className="text-xs text-gray-400 mb-1.5 block">টিমের নাম (ঐচ্ছিক)</label>
+                  <input type="text" value={teamName} onChange={e => setTeamName(e.target.value)}
+                    className="input-field" placeholder="আপনার টিমের নাম" />
+                </div>
+              )}
+              <motion.button whileTap={{ scale: 0.97 }} onClick={handleJoin} disabled={joining}
+                className="w-full py-3.5 rounded-2xl font-bold text-black text-sm disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #22d3ee, #06b6d4)' }}>
+                {joining ? <span className="flex items-center justify-center gap-2"><span className="dot-pulse"><span/><span/><span/></span>যোগ হচ্ছে...</span> : '⚔️ নিশ্চিত করুন'}
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PageTransition>
   );
 }

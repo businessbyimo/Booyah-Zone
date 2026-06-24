@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FiPlus, FiEdit, FiTrash2, FiX, FiSave } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { RiAddLine, RiEditLine, RiDeleteBinLine, RiCloseLine, RiSaveLine } from 'react-icons/ri';
 import api from '../../utils/api.js';
 import toast from 'react-hot-toast';
 
@@ -26,153 +26,166 @@ export default function AdminContent() {
   }, [tab]);
 
   const fetchAnnouncements = async () => {
-    const r = await api.get('/admin/announcements');
-    setAnnouncements(r.data);
+    api.get('/admin/announcements').then(r => setAnnouncements(r.data || [])).catch(() => {});
   };
-
   const fetchPages = async () => {
-    const r = await api.get('/admin/pages');
-    const map = {};
-    r.data.forEach(p => map[p.slug] = p);
-    setPages(map);
-    if (r.data.length) setPageContent({ slug: r.data[0].slug, title: r.data[0].title, content: r.data[0].content || '' });
+    api.get('/admin/pages').then(r => {
+      const map = {};
+      (r.data || []).forEach(p => map[p.slug] = p);
+      setPages(map);
+      if (r.data?.length) {
+        const first = r.data[0];
+        setPageContent({ slug: first.slug, title: first.title || '', content: first.content || '' });
+      }
+    }).catch(() => {});
   };
 
   const saveAnn = async () => {
     setSaving(true);
     try {
-      if (annModal?.id) await api.put(`/admin/announcements/${annModal.id}`, annForm);
-      else await api.post('/admin/announcements', annForm);
-      toast.success('সংরক্ষিত হয়েছে!');
+      if (annModal === 'create') await api.post('/admin/announcements', annForm);
+      else await api.put(`/admin/announcements/${annModal}`, annForm);
+      toast.success(annModal === 'create' ? 'ঘোষণা তৈরি হয়েছে!' : 'আপডেট হয়েছে!');
       setAnnModal(null);
       fetchAnnouncements();
-    } catch { toast.error('ব্যর্থ হয়েছে'); } finally { setSaving(false); }
+    } catch (err) { toast.error(err.response?.data?.error || 'ব্যর্থ হয়েছে'); }
+    finally { setSaving(false); }
   };
 
   const deleteAnn = async (id) => {
-    if (!confirm('মুছে ফেলবেন?')) return;
-    await api.delete(`/admin/announcements/${id}`);
-    toast.success('মুছে ফেলা হয়েছে');
-    fetchAnnouncements();
-  };
-
-  const toggleActive = async (ann) => {
-    await api.put(`/admin/announcements/${ann.id}`, { is_active: !ann.is_active });
-    fetchAnnouncements();
+    if (!window.confirm('মুছে ফেলবেন?')) return;
+    try { await api.delete(`/admin/announcements/${id}`); toast.success('মুছে ফেলা হয়েছে'); fetchAnnouncements(); }
+    catch { toast.error('ব্যর্থ'); }
   };
 
   const savePage = async () => {
     setSaving(true);
     try {
-      await api.put(`/admin/pages/${pageContent.slug}`, { title: pageContent.title, content: pageContent.content });
+      await api.post('/admin/pages', pageContent);
       toast.success('পেজ সংরক্ষিত হয়েছে!');
-    } catch { toast.error('ব্যর্থ হয়েছে'); } finally { setSaving(false); }
+    } catch { toast.error('ব্যর্থ হয়েছে'); }
+    finally { setSaving(false); }
   };
 
   const selectPage = (slug) => {
-    const p = pages[slug] || { slug, title: '', content: '' };
-    setPageContent({ slug, title: p.title || slug, content: p.content || '' });
+    const p = pages[slug] || { slug, title: PAGES.find(x => x.slug === slug)?.label || '', content: '' };
+    setPageContent({ slug, title: p.title, content: p.content || '' });
   };
 
   return (
-    <div className="space-y-4">
-      <h2 className="font-orbitron font-bold text-xl text-white">কন্টেন্ট ম্যানেজমেন্ট</h2>
-      <div className="flex gap-2">
-        <button onClick={() => setTab('announcements')} className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'announcements' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50' : 'bg-dark-700 text-gray-400 border border-dark-500'}`}>
-          📢 ঘোষণা
-        </button>
-        <button onClick={() => setTab('pages')} className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'pages' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50' : 'bg-dark-700 text-gray-400 border border-dark-500'}`}>
-          📄 স্ট্যাটিক পেজ
-        </button>
+    <div>
+      <h2 className="font-orbitron font-bold text-xl text-white mb-6">কন্টেন্ট ম্যানেজমেন্ট</h2>
+
+      <div className="flex gap-2 mb-5">
+        {[{ v: 'announcements', l: '📢 ঘোষণা' }, { v: 'pages', l: '📄 পেজ' }].map(t => (
+          <button key={t.v} onClick={() => setTab(t.v)}
+            className="px-4 py-2 rounded-xl text-sm font-semibold border transition-all"
+            style={{ background: tab === t.v ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)', borderColor: tab === t.v ? 'rgba(34,211,238,0.4)' : 'rgba(255,255,255,0.08)', color: tab === t.v ? '#22d3ee' : '#9ca3af' }}>
+            {t.l}
+          </button>
+        ))}
       </div>
 
       {tab === 'announcements' && (
-        <div className="space-y-4">
-          <div className="flex justify-end">
-            <button onClick={() => { setAnnForm({ title: '', content: '' }); setAnnModal({}); }} className="btn-primary text-sm px-4 py-2 flex items-center gap-2">
-              <FiPlus /> নতুন ঘোষণা
-            </button>
+        <div>
+          <div className="flex justify-end mb-3">
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setAnnForm({ title: '', content: '' }); setAnnModal('create'); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-black"
+              style={{ background: 'linear-gradient(135deg, #22d3ee, #06b6d4)' }}>
+              <RiAddLine />নতুন ঘোষণা
+            </motion.button>
           </div>
-          <div className="space-y-3">
-            {announcements.map(a => (
-              <motion.div key={a.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                className="card neon-border">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-white">{a.title}</h3>
-                      <span className={`text-xs px-2 py-0.5 rounded ${a.is_active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                        {a.is_active ? 'সক্রিয়' : 'লুকানো'}
-                      </span>
-                    </div>
-                    <p className="text-gray-400 text-sm line-clamp-2">{a.content.replace(/<[^>]*>/g, '')}</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button onClick={() => toggleActive(a)} className={`text-xs px-3 py-1 rounded-lg border transition-colors ${a.is_active ? 'border-gray-500 text-gray-400 hover:border-red-400 hover:text-red-400' : 'border-green-500/50 text-green-400 hover:bg-green-500/10'}`}>
-                      {a.is_active ? 'লুকান' : 'দেখান'}
-                    </button>
-                    <button onClick={() => { setAnnForm({ title: a.title, content: a.content }); setAnnModal(a); }} className="p-1.5 text-cyan-400 hover:bg-cyan-400/10 rounded"><FiEdit /></button>
-                    <button onClick={() => deleteAnn(a.id)} className="p-1.5 text-red-400 hover:bg-red-400/10 rounded"><FiTrash2 /></button>
-                  </div>
+          <div className="space-y-2">
+            {announcements.length === 0 ? <p className="text-gray-500 text-sm text-center py-8">কোনো ঘোষণা নেই</p> :
+            announcements.map((a, i) => (
+              <motion.div key={a.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
+                className="flex items-center justify-between p-3.5 rounded-2xl border border-white/8"
+                style={{ background: '#13131F' }}>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white text-sm">{a.title}</p>
+                  <p className="text-xs text-gray-500 truncate mt-0.5">{a.content?.replace(/<[^>]*>/g, '').slice(0, 60)}</p>
+                </div>
+                <div className="flex gap-1 ml-3">
+                  <button onClick={() => { setAnnForm({ title: a.title, content: a.content }); setAnnModal(a.id); }}
+                    className="p-1.5 rounded-lg text-cyan-400 hover:bg-cyan-400/10">
+                    <RiEditLine className="text-base" />
+                  </button>
+                  <button onClick={() => deleteAnn(a.id)} className="p-1.5 rounded-lg text-red-400 hover:bg-red-400/10">
+                    <RiDeleteBinLine className="text-base" />
+                  </button>
                 </div>
               </motion.div>
             ))}
-            {announcements.length === 0 && <p className="text-gray-500 text-center py-8">কোনো ঘোষণা নেই</p>}
           </div>
         </div>
       )}
 
       {tab === 'pages' && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-1 space-y-2">
-            {PAGES.map(({ slug, label }) => (
-              <button key={slug} onClick={() => selectPage(slug)}
-                className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all ${pageContent.slug === slug ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50' : 'bg-dark-700 text-gray-400 border border-dark-500 hover:border-cyan-500/30'}`}>
-                {label}
+        <div className="grid md:grid-cols-4 gap-4">
+          <div className="rounded-2xl overflow-hidden border border-white/8" style={{ background: '#13131F' }}>
+            {PAGES.map(p => (
+              <button key={p.slug} onClick={() => selectPage(p.slug)}
+                className={`w-full text-left px-4 py-3 text-sm border-b border-white/5 last:border-0 transition-colors ${pageContent.slug === p.slug ? 'bg-cyan-400/10 text-cyan-400 font-semibold' : 'text-gray-300 hover:bg-white/3'}`}>
+                {p.label}
               </button>
             ))}
           </div>
-          <div className="md:col-span-3 card neon-border space-y-3">
+          <div className="md:col-span-3 space-y-3">
             <div>
-              <label className="text-xs text-gray-400 block mb-1">পেজের শিরোনাম</label>
-              <input value={pageContent.title} onChange={e => setPageContent(f => ({...f, title: e.target.value}))} className="input-field text-sm" />
+              <label className="text-xs text-gray-400 mb-1 block">শিরোনাম</label>
+              <input type="text" value={pageContent.title} onChange={e => setPageContent(f => ({ ...f, title: e.target.value }))}
+                className="input-field" placeholder="পেজের শিরোনাম" />
             </div>
             <div>
-              <label className="text-xs text-gray-400 block mb-1">কন্টেন্ট (HTML সমর্থিত)</label>
-              <textarea value={pageContent.content} onChange={e => setPageContent(f => ({...f, content: e.target.value}))} rows={15} className="input-field text-sm resize-y font-mono text-xs" />
+              <label className="text-xs text-gray-400 mb-1 block">কন্টেন্ট</label>
+              <textarea value={pageContent.content} onChange={e => setPageContent(f => ({ ...f, content: e.target.value }))}
+                className="input-field resize-none" rows={10} placeholder="HTML বা সাদা টেক্সট লিখুন..." />
             </div>
-            <button onClick={savePage} disabled={saving} className="btn-primary text-sm px-6 py-2 flex items-center gap-2">
-              <FiSave /> {saving ? 'সংরক্ষণ হচ্ছে...' : 'পেজ সংরক্ষণ করুন'}
-            </button>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={savePage} disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-black text-sm disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #22d3ee, #06b6d4)' }}>
+              <RiSaveLine />সংরক্ষণ করুন
+            </motion.button>
           </div>
         </div>
       )}
 
-      {/* ঘোষণা মডাল */}
-      {annModal !== null && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
-          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="card neon-border w-full max-w-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-orbitron font-bold text-white">{annModal?.id ? 'ঘোষণা সম্পাদনা' : 'নতুন ঘোষণা'}</h3>
-              <button onClick={() => setAnnModal(null)}><FiX className="text-gray-400" /></button>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs text-gray-400 block mb-1">শিরোনাম</label>
-                <input value={annForm.title} onChange={e => setAnnForm(f => ({...f, title: e.target.value}))} className="input-field text-sm" />
+      <AnimatePresence>
+        {annModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 modal-overlay flex items-center justify-center px-4"
+            onClick={() => setAnnModal(null)}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+              className="w-full max-w-md rounded-3xl p-5 border border-white/10"
+              style={{ background: '#13131F' }} onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-orbitron font-bold text-white text-sm">{annModal === 'create' ? 'নতুন ঘোষণা' : 'ঘোষণা সম্পাদনা'}</h3>
+                <button onClick={() => setAnnModal(null)} className="text-gray-500 hover:text-white"><RiCloseLine className="text-xl" /></button>
               </div>
-              <div>
-                <label className="text-xs text-gray-400 block mb-1">কন্টেন্ট</label>
-                <textarea value={annForm.content} onChange={e => setAnnForm(f => ({...f, content: e.target.value}))} rows={4} className="input-field text-sm resize-none" />
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">শিরোনাম *</label>
+                  <input type="text" value={annForm.title} onChange={e => setAnnForm(f => ({ ...f, title: e.target.value }))}
+                    className="input-field" placeholder="ঘোষণার শিরোনাম" required />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">বিবরণ *</label>
+                  <textarea value={annForm.content} onChange={e => setAnnForm(f => ({ ...f, content: e.target.value }))}
+                    className="input-field resize-none" rows={4} placeholder="ঘোষণার বিবরণ" required />
+                </div>
               </div>
-              <div className="flex gap-2 pt-1">
-                <button onClick={() => setAnnModal(null)} className="flex-1 btn-secondary text-sm py-2">বাতিল</button>
-                <button onClick={saveAnn} disabled={saving} className="flex-1 btn-primary text-sm py-2">{saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন'}</button>
+              <div className="flex gap-2 mt-4">
+                <button onClick={() => setAnnModal(null)} className="flex-1 py-3 rounded-xl text-gray-400 border border-white/10 text-sm" style={{ background: 'rgba(255,255,255,0.05)' }}>বাতিল</button>
+                <motion.button whileTap={{ scale: 0.97 }} onClick={saveAnn} disabled={saving}
+                  className="flex-1 py-3 rounded-xl font-bold text-black text-sm disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #22d3ee, #06b6d4)' }}>
+                  {saving ? 'সংরক্ষণ...' : '✅ সংরক্ষণ করুন'}
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -6,8 +6,7 @@ export default function LoadingScreen() {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.35 }}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
-      style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center app-bg"
     >
       <div className="relative mb-6 flex items-center justify-center">
         <motion.div

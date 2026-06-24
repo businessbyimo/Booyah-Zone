@@ -2,19 +2,15 @@ import { useState, useEffect } from 'react';
 
 const Unit = ({ value, label }) => (
   <div className="flex flex-col items-center">
-    <div
-      className="w-10 h-10 rounded-xl flex items-center justify-center font-orbitron font-bold text-base"
-      style={{ background: 'rgba(255,107,0,0.08)', color: '#FF6B00', border: '1px solid rgba(255,107,0,0.2)' }}
-    >
+    <div className="w-9 h-9 rounded-xl flex items-center justify-center font-orbitron font-bold text-sm"
+      style={{ background: 'rgba(34,211,238,0.1)', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.25)' }}>
       {String(value).padStart(2, '0')}
     </div>
-    <span className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide">{label}</span>
+    <span className="text-[9px] text-gray-500 mt-0.5 uppercase tracking-wide">{label}</span>
   </div>
 );
 
-const SEP = () => (
-  <span className="text-orange-400 font-bold text-lg mb-4 leading-none">:</span>
-);
+const SEP = () => <span className="text-cyan-400 font-bold text-sm mb-4 leading-none">:</span>;
 
 export default function CountdownTimer({ targetDate }) {
   const calc = () => {
@@ -37,13 +33,12 @@ export default function CountdownTimer({ targetDate }) {
 
   if (!targetDate) return null;
   if (new Date(targetDate) <= new Date()) {
-    return <span className="text-xs text-red-500 font-semibold">শুরু হয়ে গেছে</span>;
+    return <span className="text-xs text-green-400 font-semibold">🔴 শুরু হয়েছে</span>;
   }
 
   return (
     <div className="flex items-center gap-1.5">
-      <Unit value={t.days} label="দিন" />
-      <SEP />
+      {t.days > 0 && <><Unit value={t.days} label="দিন" /><SEP /></>}
       <Unit value={t.hours} label="ঘণ্টা" />
       <SEP />
       <Unit value={t.minutes} label="মিনিট" />
