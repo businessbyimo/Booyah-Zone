@@ -1,0 +1,258 @@
+তুমি একজন বিশেষজ্ঞ ফুল-স্ট্যাক ওয়েব ডেভেলপার। নিচের বিস্তারিত নির্দেশনা অনুযায়ী একটি সম্পূর্ণ, প্রোডাকশন-রেডি "ফ্রি ফায়ার টুর্নামেন্ট ম্যানেজমেন্ট" ওয়েব অ্যাপ্লিকেশন বানাও। কোড অবশ্যই ক্লিন, কমেন্টেড এবং রেন্ডার (Render.com)-এর ফ্রি টায়ারে ডিপ্লয় করার উপযোগী হতে হবে।
+
+## ১. টেকনোলজি স্ট্যাক (প্রযুক্তি)
+- **ফ্রন্টএন্ড**: React.js (Create React App বা Vite) + Tailwind CSS।
+- **অ্যানিমেশন**: Framer Motion (পেজ ট্রানজিশন ও মাইক্রো-ইন্টারঅ্যাকশনের জন্য), GSAP (স্ক্রল অ্যানিমেশন ও জটিল ইফেক্টের জন্য), এবং Three.js (হোমপেজের হিরো সেকশনে 3D পার্টিকেল ব্যাকগ্রাউন্ডের জন্য)।
+- **ব্যাকএন্ড**: Node.js + Express.js ফ্রেমওয়ার্ক।
+- **ডেটাবেস**: MySQL (অথবা PostgreSQL)। JWT (JSON Web Token) ব্যবহার করে অথেন্টিকেশন করতে হবে (অ্যাক্সেস ও রিফ্রেশ টোকেন)।
+- **পেমেন্ট সিস্টেম**: ডিপোজিটের জন্য SMS ফরওয়ার্ডিং (নিচে বিস্তারিত) এবং উইথড্রয়ালের জন্য ম্যানুয়াল অ্যাপ্রুভাল পদ্ধতি।
+
+## ২. ফ্রন্টএন্ডের পেজ ও ফিচারসমূহ (বিস্তারিত)
+
+### ক. হোমপেজ (`/`)
+- **হিরো সেকশন**: Three.js-এর 3D পার্টিকেল ব্যাকগ্রাউন্ড, typed.js-এর টাইপিং অ্যানিমেশন (যেমন: "Join the Ultimate Battle"), এবং একটি বড় "Register Now" বাটন।
+- **আসন্ন টুর্নামেন্ট ক্যারোসেল**: ফ্লিপ-স্টাইলের কাউন্টডাউন টাইমার সহ কার্ড আকারে দেখাতে হবে।
+- **শীর্ষ ৫ লিডারবোর্ড**: অ্যানিমেটেড র্যাঙ্ক পরিবর্তন সহ প্রিভিউ।
+- **সাইটের পরিসংখ্যান**: মোট ইউজার, মোট টুর্নামেন্ট, এখন পর্যন্ত বিতরণ করা পুরস্কারের পরিমাণ।
+- **সর্বশেষ নোটিশ/ঘোষণা**: অ্যাডমিন প্যানেল থেকে যেটা আপডেট করা যায়।
+
+### খ. টুর্নামেন্ট লিস্টিং পেজ (`/tournaments`)
+- স্ট্যাটাস (আসন্ন, চলমান, সম্পন্ন, বাতিল) অনুযায়ী ফিল্টার।
+- নাম দিয়ে সার্চের অপশন।
+- পেজিনেশন (প্রতি পেজে ১০টি)।
+- প্রতিটি কার্ডে থাকবে: টুর্নামেন্টের নাম, তারিখ, পুরস্কারের পরিমাণ, এন্ট্রি ফি, বর্তমান অংশগ্রহণকারী/সর্বোচ্চ সীমা, এবং "বিস্তারিত দেখুন" বাটন।
+
+### গ. টুর্নামেন্ট ডিটেইলস পেজ (`/tournament/:id`)
+- টুর্নামেন্টের নাম, বিবরণ, নিয়ম, মানচিত্র, শুরু ও শেষ সময়।
+- পুরস্কার বণ্টন (১ম, ২য়, ৩য় স্থানের জন্য আলাদা)।
+- অংশগ্রহণকারীদের তালিকা (ইউজারনেম ও টিম নাম সহ)।
+- শুধুমাত্র আসন্ন টুর্নামেন্ট এবং স্লট খালি থাকলে "জয়েন" বাটন সক্রিয় থাকবে।
+- অ্যাডমিন দ্বারা জেনারেট করা ব্র্যাকেট (বিন্যাস) দেখানো।
+- লাইভ ম্যাচের ফলাফল ও স্ট্যান্ডিং।
+
+### ঘ. ইউজার অথেন্টিকেশন
+- **রেজিস্ট্রেশন** (`/register`): ইউজারনেম, ইমেইল, পাসওয়ার্ড (bcrypt দিয়ে হ্যাশ করে সংরক্ষণ), ফ্রি ফায়ার আইডি।
+- **লগইন** (`/login`): ইউজারনেম/ইমেইল + পাসওয়ার্ড।
+- **পাসওয়ার্ড রিসেট** (`/forgot-password`): SMTP কনফিগারেশন ব্যবহার করে ইমেইলে রিসেট লিংক পাঠাতে হবে।
+
+### ঙ. ইউজার ড্যাশবোর্ড (`/dashboard`)
+- **প্রোফাইল**: ছবি আপলোড, ইউজারনেম, ইমেইল, ফ্রি ফায়ার আইডি আপডেটের অপশন।
+- **ওয়ালেট**: বর্তমান ব্যালেন্স, "ডিপোজিট" ও "উইথড্র" বাটন।
+- **আমার টুর্নামেন্ট**: কোন টুর্নামেন্টে রেজিস্টার করেছি, তার স্ট্যাটাস (pending, approved, checked-in, completed)।
+- **ম্যাচ হিস্টোরি**: আগের ম্যাচের স্কোর ও প্লেসমেন্ট।
+- **ট্রানজেকশন হিস্টোরি**: সব ডিপোজিট, উইথড্রয়াল, এন্ট্রি ফি ও পুরস্কারের তালিকা (স্ট্যাটাস সহ)।
+
+### চ. পেমেন্ট পেজ (`/payment`)
+- **ডিপোজিট সেকশন**: অ্যাডমিনের bKash/Nagad/Rocket নম্বরে টাকা পাঠানোর নির্দেশনা।
+- টাকা পাঠানোর পর ফর্মে (পরিমাণ, সেন্ডারের নম্বর, TrxID, পেমেন্ট মেথড) জমা দিতে হবে।
+- **উইথড্র সেকশন**: ফর্মে পরিমাণ, পেমেন্ট মেথড ও অ্যাকাউন্ট নম্বর দিয়ে রিকোয়েস্ট জমা দিতে হবে।
+- ট্রানজেকশন হিস্টোরি ফিল্টার সহ দেখানো।
+
+### ছ. লিডারবোর্ড পেজ (`/leaderboard`)
+- `total_points` অনুযায়ী সব ইউজারের র্যাঙ্কিং তালিকা।
+- ফিল্টার: সাপ্তাহিক, মাসিক, সর্বকালের।
+- ইউজারের নিজের র্যাঙ্ক হাইলাইট করে দেখাতে হবে।
+
+## ৩. অ্যাডমিন প্যানেল (`/admin/*`)
+শুধুমাত্র অ্যাডমিন/মডারেটরদের জন্য উন্মুক্ত একটি পৃথক সেকশন।
+
+### ক. অ্যাডমিন লগইন (`/admin/login`)
+- আলাদা লগইন পেজ, সেশন ম্যানেজমেন্ট।
+
+### খ. অ্যাডমিন ড্যাশবোর্ড (`/admin`)
+- **কেPI কার্ড**: মোট ইউজার, মোট টুর্নামেন্ট, আজকের আয়, পেন্ডিং ডিপোজিট/উইথড্রয়াল।
+- **চার্ট**: লাইন/বার চার্টে সাপ্তাহিক/মাসিক আয় ও ইউজার রেজিস্ট্রেশন দেখানো (Chart.js বা Recharts ব্যবহার করো)।
+- **রিসেন্ট অ্যাক্টিভিটি**: কে রেজিস্টার করল, কে টাকা জমা দিল, কে টুর্নামেন্ট জয় করল, তার লাইভ ফিড।
+
+### গ. ইউজার ম্যানেজমেন্ট (`/admin/users`)
+- সব ইউজারের তালিকা (সার্চ ও ফিল্টার সহ)।
+- অ্যাকশন: প্রোফাইল এডিট, ব্যান/আনব্যান, ইউজার ডিলিট।
+- কোনো ইউজারের ট্রানজেকশন হিস্টোরি ও টুর্নামেন্ট পার্টিসিপেশন দেখা।
+
+### ঘ. টুর্নামেন্ট ম্যানেজমেন্ট (`/admin/tournaments`)
+- **নতুন টুর্নামেন্ট তৈরি**: নাম, গেম (Free Fire), বিবরণ, নিয়ম, মানচিত্র, শুরু/শেষ সময়, সর্বোচ্চ অংশগ্রহণকারী, এন্ট্রি ফি, পুরস্কারের পরিমাণ।
+- সব টুর্নামেন্টের তালিকা (স্ট্যাটাস ইন্ডিকেটর সহ)।
+- এডিট, পজ, স্টার্ট, ক্যান্সেল বা ডিলিট করার অপশন।
+- **ব্র্যাকেট জেনারেট**: অংশগ্রহণকারীদের সংখ্যা অনুযায়ী সিঙ্গেল এলিমিনেশন ব্র্যাকেট স্বয়ংক্রিয়ভাবে তৈরি করা।
+
+### ঙ. অংশগ্রহণকারী ব্যবস্থাপনা (`/admin/participants`)
+- প্রতিটি টুর্নামেন্টের জন্য পেন্ডিং জয়েন রিকোয়েস্টের তালিকা।
+- আবেদন অনুমোদন (Approve) বা বাতিল (Reject) করা।
+- ম্যাচ শুরুর আগে খেলোয়াড়দের চেক-ইন করা।
+
+### চ. ম্যাচ ও ফলাফল ব্যবস্থাপনা (`/admin/matches`)
+- টুর্নামেন্টের অধীনে ম্যাচ তৈরি (রাউন্ড ও ম্যাচ নম্বর)।
+- **ফলাফল ইনপুট**: প্রতিটি খেলোয়াড়ের জন্য প্লেসমেন্ট (১ম, ২য় ইত্যাদি) ও কিল পয়েন্ট ইনপুট দিলে সিস্টেম নিজেই `placement + kill_points` হিসেবে মোট পয়েন্ট ক্যালকুলেট করবে।
+- ফলাফল সংরক্ষণের পর পয়েন্ট অনুযায়ী স্বয়ংক্রিয়ভাবে বিজয়ী নির্ধারণ ও ঘোষণা করা।
+
+### ছ. পেমেন্ট ম্যানেজমেন্ট (`/admin/payments`)
+- সব ডিপোজিট ও উইথড্রয়াল রিকোয়েস্টের তালিকা (স্ট্যাটাস: pending, approved, rejected)।
+- কোনো রিকোয়েস্ট অনুমোদন করলে ইউজারের ব্যালেন্স স্বয়ংক্রিয়ভাবে আপডেট হবে।
+- প্রয়োজনে অ্যাডমিন ম্যানুয়ালি কোনো ইউজারের ব্যালেন্স যোগ বা কাটতে পারবেন (কারণ সহ)।
+
+### জ. কন্টেন্ট ম্যানেজমেন্ট (`/admin/content`)
+- হোমপেজের নোটিশ/ঘোষণা আপডেট করা।
+- স্ট্যাটিক পেজ এডিট করা: About Us, Terms & Conditions, Privacy Policy, Rules।
+
+### ঝ. সেটিংস (`/admin/settings`)
+- সাইটের তথ্য: সাইটের নাম, লোগো, যোগাযোগের ইমেইল/ফোন।
+- পেমেন্ট সেটিংস: bKash/Nagad/Rocket অ্যাকাউন্ট নম্বর, ন্যূনতম ডিপোজিট/উইথড্রয়াল লিমিট।
+- ইমেইল সেটিংস: SMTP কনফিগারেশন (পাসওয়ার্ড রিসেট ও নোটিফিকেশনের জন্য)।
+- রোল ম্যানেজমেন্ট: মডারেটর তৈরি করার অপশন (সীমিত পারমিশন সহ)।
+
+## ৪. ডেটাবেস স্কিমা (MySQL)
+নিচের SQL কোডটি ডেটাবেসে রান করতে হবে। সব টেবিলে Foreign Key সম্পর্ক নিশ্চিত করতে হবে।
+
+```sql
+-- Users table
+CREATE TABLE users (
+id INT PRIMARY KEY AUTO_INCREMENT,
+username VARCHAR(50) UNIQUE NOT NULL,
+email VARCHAR(100) UNIQUE NOT NULL,
+password VARCHAR(255) NOT NULL,
+free_fire_id VARCHAR(50),
+balance DECIMAL(10,2) DEFAULT 0.00,
+total_points INT DEFAULT 0,
+role ENUM('user', 'admin', 'moderator') DEFAULT 'user',
+status ENUM('active', 'banned') DEFAULT 'active',
+avatar VARCHAR(255),
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tournaments table
+CREATE TABLE tournaments (
+id INT PRIMARY KEY AUTO_INCREMENT,
+name VARCHAR(100) NOT NULL,
+game VARCHAR(50) DEFAULT 'Free Fire',
+description TEXT,
+rules TEXT,
+map VARCHAR(50),
+entry_fee DECIMAL(10,2) DEFAULT 0.00,
+prize_pool DECIMAL(10,2) NOT NULL,
+max_participants INT NOT NULL,
+current_participants INT DEFAULT 0,
+start_time DATETIME NOT NULL,
+end_time DATETIME,
+status ENUM('upcoming', 'ongoing', 'completed', 'cancelled') DEFAULT 'upcoming',
+created_by INT,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+-- Participants table
+CREATE TABLE participants (
+id INT PRIMARY KEY AUTO_INCREMENT,
+tournament_id INT NOT NULL,
+user_id INT NOT NULL,
+team_name VARCHAR(50),
+status ENUM('pending', 'approved', 'rejected', 'checked_in') DEFAULT 'pending',
+registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Matches table
+CREATE TABLE matches (
+id INT PRIMARY KEY AUTO_INCREMENT,
+tournament_id INT NOT NULL,
+match_number INT NOT NULL,
+round VARCHAR(20),
+status ENUM('pending', 'live', 'completed') DEFAULT 'pending',
+start_time DATETIME,
+end_time DATETIME,
+FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE
+);
+
+-- Match Results table
+CREATE TABLE match_results (
+id INT PRIMARY KEY AUTO_INCREMENT,
+match_id INT NOT NULL,
+user_id INT NOT NULL,
+placement INT,
+kill_points INT DEFAULT 0,
+total_points INT DEFAULT 0,
+is_winner BOOLEAN DEFAULT FALSE,
+FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Transactions table
+CREATE TABLE transactions (
+id INT PRIMARY KEY AUTO_INCREMENT,
+user_id INT NOT NULL,
+type ENUM('deposit', 'withdrawal', 'fee', 'prize') NOT NULL,
+amount DECIMAL(10,2) NOT NULL,
+method VARCHAR(20),
+account_number VARCHAR(50),
+transaction_id VARCHAR(100),
+status ENUM('pending', 'approved', 'rejected', 'failed') DEFAULT 'pending',
+note TEXT,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Notifications table
+CREATE TABLE notifications (
+id INT PRIMARY KEY AUTO_INCREMENT,
+user_id INT NOT NULL,
+title VARCHAR(100) NOT NULL,
+message TEXT NOT NULL,
+is_read BOOLEAN DEFAULT FALSE,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+৫. পেমেন্ট ইন্টিগ্রেশন (SMS ফরওয়ার্ডিং পদ্ধতি)
+ডিপোজিট অটোমেশন: অ্যাডমিনের একটি ডেডিকেটেড অ্যান্ড্রয়েড ফোন থাকবে (যেখানে bKash/Nagad সিম আছে)। ফোনে F-Droid থেকে "SMS to URL Forwarder" অ্যাপ ইন্সটল করতে হবে। অ্যাপটি সব ইনকামিং SMS আমাদের ওয়েবসাইটের /api/sms-webhook এন্ডপয়েন্টে JSON আকারে ফরওয়ার্ড করবে: { from, text, timestamp }।
+ব্যাকএন্ড SMS পার্স করবে (টাকা, সেন্ডার নম্বর, TrxID বের করবে)। যদি ইউজারের করা পেন্ডিং ডিপোজিট রিকোয়েস্টের সাথে মিলে যায়, তাহলে স্বয়ংক্রিয়ভাবে অ্যাপ্রুভ করে ইউজারের ব্যালেন্স বুঝিয়ে দেবে।
+উইথড্রয়াল: সম্পূর্ণ ম্যানুয়াল। ইউজার রিকোয়েস্ট করলে অ্যাডমিন নিজে মোবাইল ব্যাংকিংয়ে টাকা পাঠিয়ে দিয়ে ওয়েবসাইটে রিকোয়েস্ট অ্যাপ্রুভ করবেন। তখন ইউজারের ব্যালেন্স থেকে টাকা কাটা যাবে।
+৬. UI/UX ও অ্যানিমেশন ডিজাইন
+থিম: ডার্ক মোড (গেমিং থিম) + সায়ান/ম্যাজেন্টা/গোল্ডেন নিয়ন অ্যাকসেন্ট কালার।
+টাইপোগ্রাফি: হেডিংয়ের জন্য Google Fonts থেকে Orbitron বা Rajdhani, বডি টেক্সটের জন্য Inter বা Poppins ব্যবহার করো।
+অ্যানিমেশন:
+
+হোমপেজে Three.js পার্টিকেল ব্যাকগ্রাউন্ড ও typed.js টাইপিং ইফেক্ট।
+টুর্নামেন্ট কার্ড লোড হওয়ার সময় স্ট্যাগার্ড ফেইড-ইন অ্যানিমেশন (Framer Motion)।
+লিডারবোর্ডে নাম্বার কাউন্ট-আপ অ্যানিমেশন (GSAP)।
+কাউন্টডাউন টাইমারে ফ্লিপ অ্যানিমেশন।
+পেজ চেঞ্জের সময় মসৃণ ফেইড/স্লাইড ট্রানজিশন।
+বাটন হোভার, ক্লিক, ফোকাসে মাইক্রো-ইন্টারঅ্যাকশন (রিপল ইফেক্ট, স্কেল)।
+রেসপনসিভ: মোবাইল-ফার্স্ট ডিজাইন; সব ডিভাইসে (মোবাইল, ট্যাবলেট, ডেস্কটপ) সঠিকভাবে কাজ করবে।
+৭. রেন্ডারে (Render.com) ডিপ্লয় করার জন্য গাইড পেজ
+ওয়েবসাইটের একটি পাবলিক পেজ (/deploy-guide) তৈরি করো, যেখানে নিচের বিষয়গুলো বিস্তারিত থাকবে:
+
+পূর্বশর্ত: গিটহাব অ্যাকাউন্ট, রেন্ডার অ্যাকাউন্ট, MySQL ডেটাবেস (যেমন ClearDB বা রেন্ডারের নিজস্ব PostgreSQL)।
+প্রস্তুতি: কোড গিটহাবে পুশ করা। package.json-এ start ও build স্ক্রিপ্ট ঠিক করা। index.js-এ process.env.PORT বাইন্ড করা।
+পরিবেশ ভেরিয়েবল (Env Variables): সব ভেরিয়েবলের তালিকা (DB_HOST, DB_USER, DB_PASS, DB_NAME, JWT_SECRET, REFRESH_SECRET, SMTP হোস্ট, অ্যাডমিন নম্বর, SMS_WEBHOOK_SECRET ইত্যাদি)।
+রেন্ডার সেটআপ: নতুন Web Service তৈরি করা, গিটহাব রেপো কানেক্ট করা। এনভায়রনমেন্ট Node.js সিলেক্ট করা। Build Command: npm install && npm run build, Start Command: npm start দেওয়া।
+ডেটাবেস সেটআপ: মাইগ্রেশন রান করার নির্দেশনা বা SQL স্ক্রিপ্ট ম্যানুয়ালি রান করার কথা বলা।
+ট্রাবলশুটিং: সাধারণ সমস্যা ও সমাধান (যেমন লগ চেক করা, পোর্ট কনফ্লিক্ট)।
+৮. ডিফল্ট অ্যাডমিন অ্যাকাউন্ট
+প্রথমবার অ্যাপ্লিকেশন রান হলে একটি ডিফল্ট অ্যাডমিন অ্যাকাউন্ট তৈরি করো (seed script দিয়ে):
+
+ইউজারনেম: admin
+ইমেইল: admin@example.com
+পাসওয়ার্ড: Admin@123 (প্রথম লগইনে পাসওয়ার্ড পরিবর্তন করতে হবে)।
+৯. চ্যাট বট
+ওয়েবসাইটে একটা চ্যাটবট রাখবা যেখানে সে পুরো ওয়েবসাইটের তথ্য জানবে এবং কেউ জিজ্ঞাসা করলে উত্তর দিবে এই ওয়েবসাইট বাদে বাইরের কোনো প্রশ্ন করলে উত্তর দিবে না, আর চ্যাটবট কে ডেভেলপার, অ্যাডমিন বা মালিক সম্পর্কিত প্রশ্ন করলে আমার নাম বলবে অর্থাৎ সাকিব, আমার সাথে যোগাযোগ করতে চাইলে আমার ফেসবুক আইডি লিঙ্ক দিবে https://www.facebook.com/2ndJohnnySins । চ্যাটবট ইউজারের আগের সব কথা মনে রাখবে যেন কন্টেক্সট না হারিয়ে কথা সুন্দর ভাবে বলতে পারে, নিচের এপিআই ইউস করবা এআই এর
+
+https://betadash-api-swordslush-production.up.railway.app/opera?ask=hi
+
+{
+"author": "yazky",
+"success": true,
+"message": "Hello! How can I assist you today?",
+"follow_up_questions": [
+"Tell me what you can do",
+"I have a quick question",
+"Just saying hello"
+]
+}
+১০. চূড়ান্ত নির্দেশনা  
+আধুনিক ES6+ সিনট্যাক্স ব্যবহার করো।
+কোড ক্লিন ও কমেন্টেড রাখো।
+UI যেন প্রিমিয়াম এবং প্রফেশনাল দেখায়, সেদিকে খেয়াল রাখো।
+উপরোক্ত সব ফিচার বাস্তবায়ন করো। কোনো ফিচার বাদ দিও না।
+শেষে সব API এন্ডপয়েন্টের তালিকা ও অ্যাডমিন লগইন তথ্য সংক্ষেপে দাও।
+এখন সম্পূর্ণ কোডবেস তৈরি করা শুরু করো। প্রথমে ব্যাকএন্ড, তারপর ফ্রন্টএন্ড এবং শেষে ডিপ্লয়মেন্ট গাইড তৈরি করো। সবকিছু প্রোডাকশন-রেডি করতে হবে।
+সব ডাটা যেন রিয়েলটাইম লোড হয়, রিলোড করতে না হয়।
