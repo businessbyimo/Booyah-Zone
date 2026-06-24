@@ -17,8 +17,8 @@ const seed = async () => {
 
   // Default site settings
   const defaultSettings = [
-    ['site_name', 'FF Arena'],
-    ['site_email', 'support@ffarena.com'],
+    ['site_name', 'BooyahZone'],
+    ['site_email', 'support@booyahzone.com'],
     ['bkash_number', '01XXXXXXXXX'],
     ['nagad_number', '01XXXXXXXXX'],
     ['rocket_number', '01XXXXXXXXX'],
@@ -34,10 +34,10 @@ const seed = async () => {
 
   // Default static pages
   const pages = [
-    ['about', 'About Us', '<h2>About FF Arena</h2><p>FF Arena is the ultimate Free Fire tournament platform in Bangladesh.</p>'],
-    ['terms', 'Terms & Conditions', '<h2>Terms & Conditions</h2><p>By using FF Arena, you agree to our terms.</p>'],
-    ['privacy', 'Privacy Policy', '<h2>Privacy Policy</h2><p>We take your privacy seriously.</p>'],
-    ['rules', 'Tournament Rules', '<h2>Tournament Rules</h2><p>All participants must follow fair play guidelines.</p>'],
+    ['about', 'আমাদের সম্পর্কে', '<h2>BooyahZone সম্পর্কে</h2><p>BooyahZone বাংলাদেশের সেরা ফ্রি ফায়ার টুর্নামেন্ট প্ল্যাটফর্ম।</p>'],
+    ['terms', 'শর্তাবলী', '<h2>শর্তাবলী</h2><p>BooyahZone ব্যবহার করে আপনি আমাদের শর্তাবলীতে সম্মত হচ্ছেন।</p>'],
+    ['privacy', 'গোপনীয়তা নীতি', '<h2>গোপনীয়তা নীতি</h2><p>আমরা আপনার গোপনীয়তাকে সম্মান করি।</p>'],
+    ['rules', 'টুর্নামেন্ট নিয়ম', '<h2>টুর্নামেন্ট নিয়ম</h2><p>সকল অংশগ্রহণকারীকে ফেয়ার প্লে নির্দেশিকা মেনে চলতে হবে।</p>'],
   ];
   for (const [slug, title, content] of pages) {
     await query('INSERT INTO static_pages (slug, title, content) VALUES ($1,$2,$3) ON CONFLICT (slug) DO NOTHING', [slug, title, content]);
@@ -48,7 +48,7 @@ const seed = async () => {
   const admin = await query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
   if (admin.rows.length) {
     await query('INSERT INTO announcements (title, content, created_by) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
-      ['Welcome to FF Arena!', '🎮 Welcome to FF Arena — the best Free Fire tournament platform! Register now and start winning!', admin.rows[0].id]);
+      ['BooyahZone-এ স্বাগতম!', '🎮 BooyahZone-এ স্বাগতম — বাংলাদেশের সেরা ফ্রি ফায়ার টুর্নামেন্ট প্ল্যাটফর্ম! এখনই রেজিস্টার করুন এবং জয়ী হন!', admin.rows[0].id]);
   }
   console.log('✅ Sample announcement created');
 

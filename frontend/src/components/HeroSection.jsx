@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import * as THREE from 'three';
 
 const TYPING_STRINGS = [
   'চূড়ান্ত যুদ্ধে যোগ দিন',
@@ -17,55 +16,68 @@ export default function HeroSection() {
   const [charIndex, setCharIndex] = useState(0);
   const [deleting, setDeleting] = useState(false);
 
-  // Three.js পার্টিকেল ব্যাকগ্রাউন্ড
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, canvas.offsetWidth / canvas.offsetHeight, 0.1, 1000);
-    camera.position.z = 5;
-
-    const resize = () => {
-      renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
-      camera.aspect = canvas.offsetWidth / canvas.offsetHeight;
-      camera.updateProjectionMatrix();
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    // পার্টিকেল
-    const count = 1500;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(count * 3);
-    const colors = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
-      const r = Math.random();
-      if (r < 0.4) { colors[i * 3] = 0.13; colors[i * 3 + 1] = 0.83; colors[i * 3 + 2] = 0.93; }
-      else if (r < 0.7) { colors[i * 3] = 0.91; colors[i * 3 + 1] = 0.47; colors[i * 3 + 2] = 0.98; }
-      else { colors[i * 3] = 0.98; colors[i * 3 + 1] = 0.75; colors[i * 3 + 2] = 0.14; }
-    }
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    const material = new THREE.PointsMaterial({ size: 0.04, vertexColors: true, transparent: true, opacity: 0.8 });
-    const particles = new THREE.Points(geometry, material);
-    scene.add(particles);
 
     let frame;
-    const animate = () => {
-      frame = requestAnimationFrame(animate);
-      particles.rotation.x += 0.0003;
-      particles.rotation.y += 0.0005;
-      renderer.render(scene, camera);
-    };
-    animate();
-    return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', resize); renderer.dispose(); };
+    let renderer;
+
+    try {
+      const THREE = window.__THREE__;
+      if (!THREE) return;
+
+      renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, canvas.offsetWidth / canvas.offsetHeight, 0.1, 1000);
+      camera.position.z = 5;
+
+      const resize = () => {
+        if (!renderer) return;
+        renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+        camera.aspect = canvas.offsetWidth / canvas.offsetHeight;
+        camera.updateProjectionMatrix();
+      };
+      resize();
+      window.addEventListener('resize', resize);
+
+      const count = 1500;
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 20;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+        const r = Math.random();
+        if (r < 0.4) { colors[i * 3] = 0.13; colors[i * 3 + 1] = 0.83; colors[i * 3 + 2] = 0.93; }
+        else if (r < 0.7) { colors[i * 3] = 0.91; colors[i * 3 + 1] = 0.47; colors[i * 3 + 2] = 0.98; }
+        else { colors[i * 3] = 0.98; colors[i * 3 + 1] = 0.75; colors[i * 3 + 2] = 0.14; }
+      }
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      const material = new THREE.PointsMaterial({ size: 0.04, vertexColors: true, transparent: true, opacity: 0.8 });
+      const particles = new THREE.Points(geometry, material);
+      scene.add(particles);
+
+      const animate = () => {
+        frame = requestAnimationFrame(animate);
+        particles.rotation.x += 0.0003;
+        particles.rotation.y += 0.0005;
+        renderer.render(scene, camera);
+      };
+      animate();
+
+      return () => {
+        cancelAnimationFrame(frame);
+        window.removeEventListener('resize', resize);
+        try { renderer.dispose(); } catch {}
+      };
+    } catch {
+      return;
+    }
   }, []);
 
-  // টাইপিং অ্যানিমেশন
   useEffect(() => {
     const str = TYPING_STRINGS[strIndex];
     const speed = deleting ? 40 : 80;
@@ -85,7 +97,8 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
+
       <div className="absolute inset-0 bg-gradient-to-b from-dark-900/30 via-transparent to-dark-900" />
       <div className="grid-pattern absolute inset-0 opacity-30" />
 
@@ -100,7 +113,6 @@ export default function HeroSection() {
             🎮 ফ্রি ফায়ার টুর্নামেন্ট প্ল্যাটফর্ম
           </motion.div>
 
-          {/* লোগো */}
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -142,7 +154,6 @@ export default function HeroSection() {
           </div>
         </motion.div>
 
-        {/* স্ক্রল ইন্ডিকেটর */}
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ repeat: Infinity, duration: 1.5 }}

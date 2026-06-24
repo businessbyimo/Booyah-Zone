@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUsers, FiCalendar, FiMap, FiCheckCircle, FiX } from 'react-icons/fi';
-import { GiTrophy, GiSword } from 'react-icons/gi';
+import { GiTrophy, GiCrossedSwords } from 'react-icons/gi';
 import { format } from 'date-fns';
 import api from '../utils/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -101,7 +101,7 @@ export default function TournamentDetail() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
                 { label: 'পুরস্কার পুল', value: `৳${Number(tournament.prize_pool).toLocaleString()}`, icon: <GiTrophy />, color: 'text-yellow-400' },
-                { label: 'এন্ট্রি ফি', value: parseFloat(tournament.entry_fee) === 0 ? 'বিনামূল্যে' : `৳${tournament.entry_fee}`, icon: <GiSword />, color: 'text-cyan-400' },
+                { label: 'এন্ট্রি ফি', value: parseFloat(tournament.entry_fee) === 0 ? 'বিনামূল্যে' : `৳${tournament.entry_fee}`, icon: <GiCrossedSwords />, color: 'text-cyan-400' },
                 { label: 'স্লট', value: `${tournament.current_participants}/${tournament.max_participants}`, icon: <FiUsers />, color: 'text-fuchsia-400' },
                 { label: 'শুরুর তারিখ', value: tournament.start_time ? format(new Date(tournament.start_time), 'dd MMM') : 'TBD', icon: <FiCalendar />, color: 'text-green-400' },
               ].map(item => (

@@ -3,7 +3,7 @@ import { query } from '../db/index.js';
 
 const router = express.Router();
 
-const SITE_CONTEXT = `You are FF Arena's official AI assistant for a Free Fire Tournament Management platform called "FF Arena". 
+const SITE_CONTEXT = `You are BooyahZone's official AI assistant for a Free Fire Tournament Management platform called "BooyahZone". 
 You know everything about this website:
 - Users can register, join tournaments, manage their wallet (deposit/withdraw via bKash, Nagad, Rocket)
 - Tournaments have entry fees, prize pools, brackets, and live results

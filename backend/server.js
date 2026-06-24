@@ -74,7 +74,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Dat
 // Serve frontend in production
 const frontendDist = path.join(__dirname, '../frontend/dist');
 app.use(express.static(frontendDist));
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(frontendDist, 'index.html'), (err) => {
       if (err) res.status(200).send('Frontend not built yet. Run: cd frontend && npm run build');
@@ -84,7 +84,7 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 FF Arena server running on port ${PORT}`);
+  console.log(`🚀 BooyahZone server running on port ${PORT}`);
 });
 
 export default app;

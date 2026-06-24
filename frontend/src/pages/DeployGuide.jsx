@@ -28,7 +28,7 @@ export default function DeployGuide() {
       <div className="min-h-screen pt-24 pb-16 max-w-4xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="section-title">🚀 Deploy Guide</h1>
-          <p className="text-gray-400">Complete guide to deploy FF Arena on Render.com</p>
+          <p className="text-gray-400">Complete guide to deploy BooyahZone on Render.com</p>
         </div>
 
         <div className="space-y-6">
@@ -49,15 +49,15 @@ export default function DeployGuide() {
               <p>Create a new GitHub repository and push your code:</p>
               <Code>{`git init
 git add .
-git commit -m "Initial commit — FF Arena"
-git remote add origin https://github.com/YOUR_USERNAME/ff-arena.git
+git commit -m "Initial commit — BooyahZone"
+git remote add origin https://github.com/YOUR_USERNAME/booyahzone.git
 git push -u origin main`}</Code>
             </Step>
 
             <Step num="2" title="Create PostgreSQL Database on Render">
               <p>1. Go to <strong className="text-white">render.com</strong> → New → PostgreSQL</p>
               <p>2. Choose <strong className="text-white">Free</strong> plan</p>
-              <p>3. Set name: <code className="text-cyan-400">ff-arena-db</code></p>
+              <p>3. Set name: <code className="text-cyan-400">booyahzone-db</code></p>
               <p>4. After creation, copy the <strong className="text-white">Internal Database URL</strong></p>
             </Step>
 
@@ -65,7 +65,7 @@ git push -u origin main`}</Code>
               <p>1. Go to <strong className="text-white">render.com</strong> → New → Web Service</p>
               <p>2. Connect your GitHub repository</p>
               <p>3. Set these build settings:</p>
-              <Code>{`Name: ff-arena
+              <Code>{`Name: booyahzone
 Environment: Node
 Region: Singapore (closest to Bangladesh)
 Branch: main

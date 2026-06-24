@@ -1,0 +1,2 @@
+- [Express 5 wildcard route](express5-wildcard.md) — Express 5 rejects `app.get('*', ...)`, use `app.get(/.*/, ...)` instead.
+- [BooyahZone project setup](booyahzone-setup.md) — Key decisions for this FF tournament platform project.
