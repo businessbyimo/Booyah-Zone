@@ -41,6 +41,7 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 // Middleware
+app.set('trust proxy', 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json({ limit: '10mb' }));
