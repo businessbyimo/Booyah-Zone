@@ -18,6 +18,7 @@ import smsWebhookRoutes from './routes/smsWebhook.js';
 import uploadRoutes from './routes/upload.js';
 import chatbotRoutes from './routes/chatbot.js';
 import publicRoutes from './routes/public.js';
+import { initDatabase } from './db/init.js';
 
 dotenv.config();
 
@@ -84,8 +85,20 @@ app.get(/.*/, (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 BooyahZone server running on port ${PORT}`);
-});
+
+const start = async () => {
+  if (process.env.DATABASE_URL) {
+    try {
+      await initDatabase();
+    } catch (err) {
+      console.error('⚠️ DB init error (non-fatal):', err.message);
+    }
+  }
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 BooyahZone server running on port ${PORT}`);
+  });
+};
+
+start();
 
 export default app;
