@@ -51,35 +51,36 @@ const AppContent = () => {
   return (
     <div className="min-h-screen gradient-bg">
       {!isAdmin && <Navbar />}
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Home />} />
-          <Route path="/tournaments" element={<Tournaments />} />
-          <Route path="/tournament/:id" element={<TournamentDetail />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/deploy-guide" element={<DeployGuide />} />
-          <Route path="/page/:slug" element={<StaticPage />} />
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
+      <main className={!isAdmin ? 'pt-14 pb-20' : ''}>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<Home />} />
+            <Route path="/tournaments" element={<Tournaments />} />
+            <Route path="/tournament/:id" element={<TournamentDetail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/deploy-guide" element={<DeployGuide />} />
+            <Route path="/page/:slug" element={<StaticPage />} />
+            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
 
-          {/* Admin routes */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="tournaments" element={<AdminTournaments />} />
-            <Route path="participants" element={<AdminParticipants />} />
-            <Route path="matches" element={<AdminMatches />} />
-            <Route path="payments" element={<AdminPayments />} />
-            <Route path="content" element={<AdminContent />} />
-            <Route path="settings" element={<AdminSettings />} />
-          </Route>
-        </Routes>
-      </AnimatePresence>
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="tournaments" element={<AdminTournaments />} />
+              <Route path="participants" element={<AdminParticipants />} />
+              <Route path="matches" element={<AdminMatches />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="content" element={<AdminContent />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+          </Routes>
+        </AnimatePresence>
+      </main>
       {!isAdmin && <Footer />}
       {!isAdmin && <Chatbot />}
     </div>

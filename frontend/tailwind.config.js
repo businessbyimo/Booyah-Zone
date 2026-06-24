@@ -4,15 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        cyan: { 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' },
-        magenta: { 400: '#e879f9', 500: '#d946ef', 600: '#c026d3' },
-        gold: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
+        orange: {
+          50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa',
+          300: '#fdba74', 400: '#fb923c', 500: '#f97316',
+          600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12'
+        },
+        brand: { DEFAULT: '#FF6B00', light: '#FF8C42', dark: '#CC5500' },
+        purple: {
+          50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff',
+          300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7',
+          600: '#9333ea', 700: '#7c3aed', 800: '#6b21a8', 900: '#581c87'
+        },
         dark: {
-          900: '#050510',
-          800: '#0a0a1f',
-          700: '#0f0f2e',
-          600: '#1a1a3e',
-          500: '#252550',
+          900: '#0f0f1a', 800: '#1a1a2e', 700: '#16213e', 600: '#0f3460', 500: '#533483',
         }
       },
       fontFamily: {
@@ -22,12 +26,19 @@ export default {
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
-        'float': 'float 6s ease-in-out infinite',
+        'float': 'float 3s ease-in-out infinite',
+        'spin-slow': 'spin 3s linear infinite',
       },
       keyframes: {
-        glow: { from: { boxShadow: '0 0 5px #22d3ee, 0 0 10px #22d3ee' }, to: { boxShadow: '0 0 20px #22d3ee, 0 0 40px #22d3ee, 0 0 60px #22d3ee' } },
-        float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-20px)' } },
+        float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-8px)' } },
+      },
+      boxShadow: {
+        'card': '0 2px 16px rgba(0,0,0,0.06)',
+        'card-hover': '0 8px 32px rgba(0,0,0,0.12)',
+        'orange': '0 8px 32px rgba(255, 107, 0, 0.3)',
+      },
+      borderRadius: {
+        '3xl': '1.5rem', '4xl': '2rem',
       }
     },
   },

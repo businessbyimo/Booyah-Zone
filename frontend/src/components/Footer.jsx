@@ -1,54 +1,62 @@
-import { Link } from 'react-router-dom';
-import { FaFacebook, FaDiscord, FaYoutube } from 'react-icons/fa';
+import { Link, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FiHome, FiAward, FiUser, FiCreditCard } from 'react-icons/fi';
+import { GiCrossedSwords } from 'react-icons/gi';
+import { useAuth } from '../context/AuthContext.jsx';
+
+const NAV_ITEMS = [
+  { to: '/', icon: FiHome, label: 'হোম' },
+  { to: '/tournaments', icon: GiCrossedSwords, label: 'টুর্নামেন্ট' },
+  { to: '/leaderboard', icon: FiAward, label: 'র‌্যাংকিং' },
+  { to: '/dashboard', icon: FiUser, label: 'প্রোফাইল', auth: true },
+  { to: '/payment', icon: FiCreditCard, label: 'ওয়ালেট', auth: true },
+];
 
 export default function Footer() {
+  const location = useLocation();
+  const { user } = useAuth();
+
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
+
   return (
-    <footer className="bg-dark-900 border-t border-dark-600 mt-20">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <img src="/logo-nobg.png" alt="BooyahZone" className="h-10 w-auto" />
-            </div>
-            <p className="text-gray-400 text-sm">বাংলাদেশের সেরা ফ্রি ফায়ার টুর্নামেন্ট প্ল্যাটফর্ম। প্রতিযোগিতা করুন, জিতুন এবং শীর্ষে উঠুন।</p>
-            <div className="flex space-x-3 mt-4">
-              <a href="https://www.facebook.com/2ndJohnnySins" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-cyan-400 transition-colors">
-                <FaFacebook className="text-xl" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-cyan-400 transition-colors"><FaDiscord className="text-xl" /></a>
-              <a href="#" className="text-gray-400 hover:text-cyan-400 transition-colors"><FaYoutube className="text-xl" /></a>
-            </div>
-          </div>
-          <div>
-            <h3 className="font-semibold text-white mb-3 font-rajdhani text-lg">দ্রুত লিংক</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link to="/tournaments" className="hover:text-cyan-400 transition-colors">টুর্নামেন্ট</Link></li>
-              <li><Link to="/leaderboard" className="hover:text-cyan-400 transition-colors">লিডারবোর্ড</Link></li>
-              <li><Link to="/dashboard" className="hover:text-cyan-400 transition-colors">ড্যাশবোর্ড</Link></li>
-              <li><Link to="/payment" className="hover:text-cyan-400 transition-colors">ওয়ালেট</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-semibold text-white mb-3 font-rajdhani text-lg">আইনি তথ্য</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link to="/page/about" className="hover:text-cyan-400 transition-colors">আমাদের সম্পর্কে</Link></li>
-              <li><Link to="/page/terms" className="hover:text-cyan-400 transition-colors">শর্তাবলী</Link></li>
-              <li><Link to="/page/privacy" className="hover:text-cyan-400 transition-colors">গোপনীয়তা নীতি</Link></li>
-              <li><Link to="/page/rules" className="hover:text-cyan-400 transition-colors">টুর্নামেন্টের নিয়ম</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-semibold text-white mb-3 font-rajdhani text-lg">সাপোর্ট</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="https://www.facebook.com/2ndJohnnySins" target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors">সাকিবের সাথে যোগাযোগ করুন</a></li>
-              <li><Link to="/deploy-guide" className="hover:text-cyan-400 transition-colors">ডিপ্লয় গাইড</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-dark-600 mt-8 pt-6 text-center text-gray-500 text-sm">
-          <p>© ২০২৫ BooyahZone। সর্বস্বত্ব সংরক্ষিত। নির্মাণে <a href="https://www.facebook.com/2ndJohnnySins" className="text-cyan-400 hover:underline">সাকিব</a>।</p>
-        </div>
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100"
+      style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.07)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
+      <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
+        {NAV_ITEMS.map(({ to, icon: Icon, label, auth }) => {
+          const active = isActive(to);
+          const href = auth && !user ? '/login' : to;
+          return (
+            <Link
+              key={to}
+              to={href}
+              className="flex flex-col items-center justify-center flex-1 py-1 relative"
+            >
+              {active && (
+                <motion.div
+                  layoutId="bottom-nav-dot"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
+                  style={{ background: 'linear-gradient(90deg,#FF6B00,#FF8C42)' }}
+                />
+              )}
+              <Icon
+                className="text-[22px] mb-0.5 transition-colors duration-200"
+                style={{ color: active ? '#FF6B00' : '#9CA3AF' }}
+              />
+              <span
+                className="text-[10px] font-semibold transition-colors duration-200 leading-none"
+                style={{ color: active ? '#FF6B00' : '#9CA3AF' }}
+              >
+                {label}
+              </span>
+            </Link>
+          );
+        })}
       </div>
-    </footer>
+    </nav>
   );
 }
